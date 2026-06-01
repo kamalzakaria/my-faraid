@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="Kalkulator Faraid & senarai aset mengikut amalan Malaysia (mazhab Syafi'i)." />
+<title>Kalkulator Faraid</title>
+<style>
+  :root{
+    --primary:#5b3a9e; --primary-dark:#432a78; --primary-soft:#ece5fb;
+    --selected:#7e57c2; --blocked:#cfcfd6; --line:#e3e0ec; --ink:#1d1b25; --muted:#6b6878;
+    --ok:#2e7d32; --bg:#f6f4fb; --card:#ffffff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',Roboto,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);}
+  .view{display:none}
+  .view.active{display:block}
+  .appbar{position:sticky;top:0;z-index:10;background:var(--primary);color:#fff;display:flex;align-items:center;gap:8px;
+    padding:12px 16px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
+  .appbar h1{font-size:1.1rem;margin:0;flex:1;font-weight:600}
+  .appbar button{background:rgba(255,255,255,.16);color:#fff;border:0;padding:8px 14px;border-radius:8px;
+    font-size:.9rem;cursor:pointer;font-weight:600}
+  .appbar button:hover{background:rgba(255,255,255,.28)}
+  .appbar .icon{background:transparent;padding:8px;font-size:1.2rem;line-height:1}
+  main{max-width:1100px;margin:0 auto;padding:16px}
+  .layout{display:grid;grid-template-columns:1fr;gap:20px}
+  @media(min-width:880px){.layout{grid-template-columns:1.4fr 1fr}}
+  .section-title{font-weight:600;margin:4px 0 12px;font-size:1rem}
+  .hint{color:var(--muted);font-size:.82rem;margin:0 0 12px}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+  /* Fixed-size cards with a static stack: label / mahjub / counter. The label fills the top
+     (flex:1) while the mahjub and counter rows always reserve their height, so a card never
+     resizes when it becomes mahjub or gains a counter — every button stays the same size. */
+  .heir{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center;
+    cursor:pointer;user-select:none;transition:.12s;height:108px;display:flex;flex-direction:column;
+    align-items:center;gap:3px}
+  .heir:hover{border-color:var(--primary)}
+  .heir .lbl{flex:1;display:flex;align-items:center;justify-content:center;font-size:.82rem;line-height:1.2}
+  .heir.sel{background:var(--selected);border-color:var(--selected);color:#fff}
+  .heir.blocked{background:var(--blocked);border-color:var(--blocked);color:#7a7a85}
+  .heir .mahjub{height:13px;line-height:1;font-size:.66rem;font-style:italic;opacity:0}
+  .heir.blocked .mahjub{opacity:.9}
+  .stepper{height:26px;display:flex;align-items:center;justify-content:center;gap:4px}
+  .stepper button{width:26px;height:26px;border-radius:50%;border:0;background:rgba(255,255,255,.25);color:#fff;
+    font-size:1rem;cursor:pointer;line-height:1}
+  .stepper span{min-width:22px;font-weight:700}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .pie-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .pie{width:190px;height:190px;border-radius:50%;background:#eee;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
+  .pie.empty{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.85rem;text-align:center;padding:20px}
+  .legend{width:100%;display:flex;flex-direction:column;gap:6px}
+  .legend .row{display:flex;align-items:center;gap:8px;font-size:.84rem;padding:6px 8px;border-radius:8px}
+  .legend .row:nth-child(odd){background:#faf9fe}
+  .legend .sw{width:12px;height:12px;border-radius:3px;flex:0 0 auto}
+  .legend .nm{flex:1}
+  .legend .pct{font-weight:700;white-space:nowrap}
+  .legend .sub{display:block;color:var(--muted);font-size:.74rem}
+  .notes{margin-top:12px}
+  .note{background:var(--primary-soft);border-radius:8px;padding:8px 10px;font-size:.78rem;color:var(--primary-dark);margin-top:6px}
+  .basebar{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);border-top:1px dashed var(--line);margin-top:10px;padding-top:8px}
+
+  .toolbar{display:flex;gap:10px;margin-top:14px}
+  .btn{border:0;border-radius:10px;padding:10px 16px;font-weight:600;cursor:pointer;font-size:.9rem}
+  .btn.primary{background:var(--primary);color:#fff}
+  .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .btn.primary:hover{background:var(--primary-dark)}
+  .btn.block{width:100%}
+  .btn.sm{padding:6px 12px;font-size:.8rem}
+  .section-title.with-add{display:flex;justify-content:space-between;align-items:center;gap:10px}
+
+  .total{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:16px;margin-bottom:14px}
+  .total .big{font-size:1.5rem;font-weight:700;color:var(--primary-dark)}
+  .asset{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:12px;margin-bottom:8px}
+  .asset .type{font-size:.7rem;background:var(--primary-soft);color:var(--primary-dark);padding:3px 8px;border-radius:20px;white-space:nowrap}
+  .asset .meta{flex:1;min-width:0}
+  .asset .meta .nm{font-weight:600}
+  .asset .meta .tag{font-size:.72rem;color:#c62828}
+  .asset .meta .tag.ins{color:var(--ok)}
+  .asset .amt .strike{text-decoration:line-through;opacity:.5;font-weight:400;font-size:.82rem;margin-right:4px}
+  .asset .amt{font-weight:700;white-space:nowrap}
+  .asset .del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem}
+  .asset.debt .type{background:#fdecec;color:#c62828}
+  .asset.debt .amt{color:#c62828}
+  .empty-state{text-align:center;color:var(--muted);padding:30px 10px;font-size:.9rem}
+
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(20,16,40,.45);z-index:50;align-items:center;justify-content:center;padding:16px}
+  .modal-bg.open{display:flex}
+  .modal{background:#fff;border-radius:16px;max-width:380px;width:100%;padding:20px;max-height:90vh;overflow:auto}
+  .modal h3{margin:0 0 14px}
+  .modal label{display:block;font-size:.8rem;color:var(--muted);margin:10px 0 4px}
+  .modal input[type=text]{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:.95rem}
+  .toggle-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;padding:10px;
+    background:#faf9fe;border-radius:8px}
+  .toggle-row small{display:block;color:var(--muted);font-size:.72rem}
+  .switch{width:46px;height:26px;border-radius:20px;background:#cfcad8;position:relative;cursor:pointer;flex:0 0 auto;transition:.15s}
+  .switch.on{background:var(--ok)}
+  .switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s}
+  .switch.on::after{left:23px}
+  .modal .actions{display:flex;gap:10px;margin-top:18px}
+  .err{color:#c62828;font-size:.74rem;margin-top:4px;min-height:1em}
+
+  .typegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+  .typecard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;font-size:.8rem}
+  .typecard:hover{border-color:var(--primary);background:var(--primary-soft)}
+
+  .disclaimer{font-size:.74rem;color:var(--muted);border-top:1px solid var(--line);margin-top:24px;padding-top:14px;line-height:1.5}
+  details{margin-top:10px;font-size:.78rem;color:var(--muted)}
+  summary{cursor:pointer;font-weight:600;color:var(--primary-dark)}
+  details ul{margin:8px 0;padding-left:18px}
+  .splash{position:fixed;inset:0;background:var(--primary);color:#fff;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:8px;z-index:100;transition:opacity .4s}
+  .splash.hide{opacity:0;pointer-events:none}
+  .splash h1{margin:0;font-size:1.6rem}
+  .splash p{margin:0;opacity:.8;font-size:.85rem}
+</style>
+</head>
+<body>
+
+<div id="splash" class="splash">
+  <h1>☪ Kalkulator Faraid</h1>
+  <p>Memuatkan…</p>
+</div>
+
+<!-- ============ FARAID VIEW ============ -->
+<section id="view-faraid" class="view">
+  <header class="appbar">
+    <h1>Kalkulator Faraid</h1>
+    <button id="toAssets">Aset →</button>
+  </header>
+  <main>
+    <div class="layout">
+      <div>
+        <div class="section-title">Pilih Waris (Ahli Waris)</div>
+        <p class="hint">Ketik untuk pilih. Bagi waris berbilang, laras bilangan dengan butang −/+. Waris kelabu (<em>mahjub</em>) terhalang oleh waris lain.</p>
+        <div id="heirGrid" class="grid"></div>
+        <div class="toolbar">
+          <button class="btn ghost" id="resetBtn">Set Semula</button>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Bahagian Faraid</div>
+        <div class="panel">
+          <div class="pie-wrap">
+            <div id="pie" class="pie empty">Belum ada waris dipilih</div>
+            <div id="legend" class="legend"></div>
+          </div>
+          <div id="notes" class="notes"></div>
+          <div id="basebar" class="basebar" style="display:none"></div>
+        </div>
+        <p class="disclaimer">
+          Pengiraan mengikut <strong>mazhab Syafi'i (amalan Malaysia)</strong>, termasuk <em>radd</em>
+          (lebihan dikembalikan kepada waris kecuali pasangan). Alat ini untuk <strong>anggaran &amp; pendidikan</strong>.
+          Untuk pembahagian rasmi sila rujuk Mahkamah Syariah / Amanah Raya / pakar faraid bertauliah.
+          <details>
+            <summary>Nota & had pengiraan</summary>
+            <ul>
+              <li><strong>Disokong:</strong> furud, asabah (2:1), 'aul, radd, Umariyyatān, asabah ma'al-ghair (saudara perempuan + anak perempuan), Musytarakah, datuk berkongsi dengan adik-beradik (muqasamah).</li>
+              <li><strong>Belum disokong (kes jarang):</strong> Akdariyyah, mu'addah (campuran adik-beradik kandung &amp; sebapa bersama datuk), dan dhawul-arham. Sila rujuk pakar bagi kes ini.</li>
+            </ul>
+          </details>
+        </p>
+      </div>
+    </div>
+  </main>
+</section>
+
+<!-- ============ ASSETS VIEW ============ -->
+<section id="view-assets" class="view">
+  <header class="appbar">
+    <button class="icon" id="backFaraid" title="Kembali">←</button>
+    <h1>Senarai Aset</h1>
+  </header>
+  <main>
+    <div class="total">
+      <div>
+        <div>Jumlah Aset Boleh Dibahagi</div>
+        <small id="totalNote" class="hint" style="margin:0"></small>
+      </div>
+      <div class="big" id="assetTotal">RM 0.00</div>
+    </div>
+
+    <div class="section-title with-add">
+      <span>Aset</span>
+      <button class="btn ghost sm" id="addAssetBtn">+ Tambah Aset</button>
+    </div>
+    <div id="assetList"></div>
+
+    <div class="section-title with-add" style="margin-top:22px">
+      <span>Hutang &amp; Liabiliti</span>
+      <button class="btn ghost sm" id="addLoanBtn">+ Tambah Hutang</button>
+    </div>
+    <p class="hint">Hutang peribadi, kad kredit, atau perbelanjaan pengebumian yang diselesaikan sebelum pembahagian.
+      Hutang bercagar (cth. pinjaman rumah/kereta) dimasukkan terus pada aset berkenaan.</p>
+    <div id="loanList"></div>
+
+    <div class="section-title" style="margin-top:22px">Agihan Pusaka (Anggaran)</div>
+    <div class="panel">
+      <div id="distList" class="legend"></div>
+    </div>
+  </main>
+</section>
+
+<!-- ============ ADD ASSET MODAL ============ -->
+<div id="modal" class="modal-bg">
+  <div class="modal">
+    <div id="modalStep1">
+      <h3>Pilih Jenis Aset</h3>
+      <div id="typeGrid" class="typegrid"></div>
+    </div>
+    <div id="modalStep2" style="display:none">
+      <h3 id="formTitle"></h3>
+      <label>Nama aset / lokasi / nombor akaun</label>
+      <input type="text" id="fLabel" autocomplete="off" />
+      <label>Nilai aset semasa (RM)</label>
+      <input type="text" id="fAmount" inputmode="numeric" autocomplete="off" />
+      <div id="loanWrap" style="display:none">
+        <div class="toggle-row">
+          <div>Masih berhutang?</div>
+          <div class="switch" id="swLoan"></div>
+        </div>
+        <div id="loanDetail" style="display:none">
+          <label>Baki pinjaman / hutang semasa (RM)</label>
+          <input type="text" id="fLoan" inputmode="numeric" autocomplete="off" />
+          <div class="toggle-row">
+            <div>Perlindungan insurans / takaful?
+              <small>Jika dilindungi, hutang diselesaikan oleh insurans dan TIDAK ditolak. Jika tidak, baki hutang ditolak daripada harta.</small>
+            </div>
+            <div class="switch" id="swInsured"></div>
+          </div>
+        </div>
+      </div>
+      <div class="err" id="formErr"></div>
+      <div class="actions">
+        <button class="btn ghost" id="cancelAsset">Batal</button>
+        <button class="btn primary" id="saveAsset" style="flex:1">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ADD LOAN MODAL ============ -->
+<div id="loanModal" class="modal-bg">
+  <div class="modal">
+    <h3>Tambah Hutang</h3>
+    <label>Jenis / nama hutang</label>
+    <input type="text" id="lLabel" autocomplete="off" placeholder="cth. Pinjaman peribadi, kad kredit" />
+    <label>Jumlah hutang semasa (RM)</label>
+    <input type="text" id="lAmount" inputmode="numeric" autocomplete="off" />
+    <div class="toggle-row">
+      <div>Perlindungan insurans / takaful?
+        <small>Jika dilindungi, hutang diselesaikan oleh insurans dan TIDAK ditolak. Jika tidak, jumlah hutang ditolak daripada harta.</small>
+      </div>
+      <div class="switch" id="swLoanInsured"></div>
+    </div>
+    <div class="err" id="loanErr"></div>
+    <div class="actions">
+      <button class="btn ghost" id="cancelLoan">Batal</button>
+      <button class="btn primary" id="saveLoan" style="flex:1">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   Fraction helpers (exact arithmetic for shares)
+   ============================================================ */
+function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t;}return a||1;}
+function lcm(a,b){return a/gcd(a,b)*b;}
+function F(n,d){d=d===undefined?1:d;if(d<0){n=-n;d=-d;}const g=gcd(n,d)||1;return {n:n/g,d:d/g};}
+const ZERO=F(0,1), ONE=F(1,1);
+const fa=(x,y)=>F(x.n*y.d+y.n*x.d, x.d*y.d);
+const fs=(x,y)=>F(x.n*y.d-y.n*x.d, x.d*y.d);
+const fm=(x,y)=>F(x.n*y.n, x.d*y.d);
+const fd=(x,y)=>F(x.n*y.d, x.d*y.n);
+const fval=x=>x.n/x.d;
+const fzero=x=>x.n===0;
+const fcmp=(x,y)=>x.n*y.d - y.n*x.d;      // sign of x-y
+const ffmt=x=>x.d===1?(""+x.n):(x.n+"/"+x.d);
+
+/* ============================================================
+   Heir + asset metadata (ids preserved from Flutter app)
+   ============================================================ */
+const HEIRS=[
+  {id:'b',  label:'Bapa'},
+  {id:'i',  label:'Ibu'},
+  {id:'s',  label:'Suami'},
+  {id:'is', label:'Isteri', multi:true, max:4},
+  {id:'al', label:'Anak Lelaki', multi:true},
+  {id:'ap', label:'Anak Perempuan', multi:true},
+  {id:'d',  label:'Datuk Sebelah Bapa'},
+  {id:'nsb',label:'Nenek Sebelah Bapa'},
+  {id:'nsi',label:'Nenek Sebelah Ibu'},
+  {id:'ss', label:'Adik Beradik Tiri Seibu', multi:true},
+  {id:'cl', label:'Cucu Lelaki', multi:true},
+  {id:'cp', label:'Cucu Perempuan', multi:true},
+  {id:'bk', label:'Adik Beradik Lelaki Kandung', multi:true},
+  {id:'sk', label:'Adik Beradik Perempuan Kandung', multi:true},
+  {id:'bt', label:'Adik Beradik Lelaki Tiri Sebapa', multi:true},
+  {id:'st', label:'Adik Beradik Perempuan Tiri Sebapa', multi:true},
+  {id:'nk', label:'Anak Buah Lelaki Kandung', multi:true},
+  {id:'nt', label:'Anak Buah Lelaki Tiri Sebapa', multi:true},
+  {id:'uk', label:'Pakcik Kandung'},
+  {id:'ut', label:'Pakcik Tiri Sebelah Bapa'},
+  {id:'ck', label:'Sepupu Lelaki Kandung'},
+  {id:'ct', label:'Sepupu Lelaki Tiri Sebapa'},
+];
+const HEIR_LABEL={}; HEIRS.forEach(h=>HEIR_LABEL[h.id]=h.label);
+
+const ASSET_TYPES=[
+  {id:'property',name:'Hartanah',loan:true},
+  {id:'vehicle', name:'Kenderaan',loan:true},
+  {id:'kwsp',    name:'KWSP'},
+  {id:'savings', name:'Akaun Simpanan'},
+  {id:'current', name:'Akaun Semasa'},
+  {id:'life',    name:'Hibah Takaful'},
+  {id:'asb',     name:'ASNB'},
+  {id:'th',      name:'Tabung Haji'},
+  {id:'trust',   name:'Unit Trust'},
+  {id:'fd',      name:'Fixed Deposit'},
+  {id:'cds',     name:'Akaun CDS'},
+  {id:'stock',   name:'Saham Syarikat'},
+  {id:'others',  name:'Lain-lain'},
+];
+const ASSET_NAME={}; ASSET_TYPES.forEach(t=>ASSET_NAME[t.id]=t.name);
+
+const PIE_COLORS=['#5b3a9e','#e57373','#4db6ac','#ffb74d','#7986cb','#81c784','#f06292',
+  '#64b5f6','#a1887f','#ba68c8','#aed581','#ffd54f','#4dd0e1','#9575cd','#90a4ae'];
+
+/* ============================================================
+   FARAID ENGINE  (Shafi'i / Malaysian practice)
+   sel: { id: count }  ->  result object
+   ============================================================ */
+function solveFaraid(sel){
+  const has=id=>(sel[id]||0)>0;
+  const cnt=id=>(sel[id]||0);
+  const notes=[];
+  const shares={};                       // id -> Fr (fraction of whole estate)
+  let baitulmal=ZERO;                    // declared early: Umariyyatān path returns before Phase C
+
+  /* ---- Phase A: blocking (hijab) for furud heirs ---- */
+  const blocked={};
+  blocked.d   = has('b');                                  // grandfather blocked by father
+  blocked.nsb = has('b')||has('i');                        // paternal grandmother: father OR mother
+  blocked.nsi = has('i');                                  // maternal grandmother: mother only (NOT father)
+  blocked.cl  = has('al');                                 // grandson blocked by son
+  const effCl = has('cl') && !blocked.cl;
+  blocked.cp  = has('al') || (cnt('ap')>=2 && !effCl);      // granddaughter: son, or 2+ daughters w/o grandson
+  const effCp = has('cp') && !blocked.cp;
+
+  const hasMaleDesc = has('al') || effCl;
+  const hasDesc     = hasMaleDesc || has('ap') || effCp;
+  const effD  = has('d') && !blocked.d;
+  const inhNsb= has('nsb') && !blocked.nsb;
+  const inhNsi= has('nsi') && !blocked.nsi;
+
+  blocked.ss  = has('b') || effD || hasDesc;               // uterine: any male ascendant or any descendant
+  const effSs = has('ss') && !blocked.ss;
+
+  blocked.bk  = has('b') || has('al') || effCl;            // full brother (NOT blocked by grandfather: Shafi'i)
+  blocked.sk  = has('b') || has('al') || effCl;
+  const effBk = has('bk') && !blocked.bk;
+  const effSk = has('sk') && !blocked.sk;
+  const fullSisResiduary = effSk && !effBk && (has('ap')||effCp);   // asabah ma'al-ghair
+
+  blocked.bt  = has('b')||has('al')||effCl||effBk||fullSisResiduary;
+  const effBt = has('bt') && !blocked.bt;
+  const fullSisTwoThird = effSk && !effBk && !(has('ap')||effCp) && cnt('sk')>=2;
+  blocked.st  = has('b')||has('al')||effCl||effBk||fullSisResiduary||(fullSisTwoThird && !effBt);
+  const effSt = has('st') && !blocked.st;
+  const consSisResiduary = effSt && !effBt && !effSk && (has('ap')||effCp);
+
+  const hasSiblings = effBk||effSk||effBt||effSt;
+  const sibCountAll = cnt('ss')+cnt('bk')+cnt('sk')+cnt('bt')+cnt('st'); // counts even if mahjub (affects mother)
+
+  /* ---- Special case: Umariyyatān (spouse + mother + father only) ---- */
+  const selectedIds=HEIRS.map(h=>h.id).filter(has);
+  const spouse = has('s')?'s':(has('is')?'is':null);
+  if(spouse && has('i') && has('b') && selectedIds.length===3){
+    const sp = spouse==='s'?F(1,2):F(1,4);
+    shares[spouse]=sp;
+    const rem=fs(ONE,sp);
+    shares.i=fd(rem,F(3,1));               // mother: 1/3 of remainder
+    shares.b=fs(rem,shares.i);             // father: rest
+    notes.push("Kes Umariyyatān/Gharrāwain — ibu mendapat 1/3 daripada baki selepas bahagian pasangan.");
+    return finalize();
+  }
+
+  /* ---- Phase B: assign furud (fixed shares) ---- */
+  if(has('s'))  shares.s  = hasDesc?F(1,4):F(1,2);
+  if(has('is')) shares.is = hasDesc?F(1,8):F(1,4);          // total for all wives
+  if(has('i'))  shares.i  = (hasDesc||sibCountAll>=2)?F(1,6):F(1,3);
+
+  const gm=(inhNsb?1:0)+(inhNsi?1:0);
+  if(inhNsb) shares.nsb=F(1,6*gm);                          // grandmothers share 1/6
+  if(inhNsi) shares.nsi=F(1,6*gm);
+
+  if(!has('al') && has('ap')) shares.ap = cnt('ap')>=2?F(2,3):F(1,2);
+
+  if(effCp && !effCl){                                      // granddaughter as furud
+    if(has('ap')){ if(cnt('ap')===1) shares.cp=F(1,6); }    // completes 2/3 with one daughter
+    else shares.cp = cnt('cp')>=2?F(2,3):F(1,2);
+  }
+  if(effSs) shares.ss = cnt('ss')>=2?F(1,3):F(1,6);
+
+  if(effSk && !effBk && !fullSisResiduary)
+    shares.sk = cnt('sk')>=2?F(2,3):F(1,2);
+
+  if(effSt && !effBt && !consSisResiduary){
+    if(effSk && !effBk && !fullSisResiduary){
+      if(cnt('sk')===1) shares.st=F(1,6);                   // complete 2/3 with one full sister
+    } else {
+      shares.st = cnt('st')>=2?F(2,3):F(1,2);
+    }
+  }
+
+  if(has('b')){ if(hasDesc) shares.b=F(1,6); }              // father 1/6 when descendant (else pure asabah)
+  else if(effD){ if(hasDesc && !hasSiblings) shares.d=F(1,6); }
+
+  /* ---- Phase C: 'aul / asabah / radd ---- */
+  let sumF=Object.keys(shares).reduce((a,k)=>fa(a,shares[k]),ZERO);
+
+  if(fcmp(sumF,ONE)>0){
+    // 'Aul — scale all furud down proportionally
+    Object.keys(shares).forEach(k=>shares[k]=fd(shares[k],sumF));
+    notes.push("Kes 'Aul — jumlah bahagian melebihi harta; semua bahagian dikecilkan secara berkadar.");
+  } else {
+    let residue=fs(ONE,sumF);
+    if(fzero(residue)){
+      if(effBk && effSs) applyMushtaraka();                // Himariyyah / Musytarakah
+    } else if(!assignAsabah(residue)){
+      // no asabah -> radd to non-spouse furud, else Baitulmal
+      const nonSp=Object.keys(shares).filter(k=>k!=='s'&&k!=='is');
+      const sumNon=nonSp.reduce((a,k)=>fa(a,shares[k]),ZERO);
+      if(!fzero(sumNon)){
+        nonSp.forEach(k=>shares[k]=fa(shares[k],fm(residue,fd(shares[k],sumNon))));
+        notes.push("Kes Radd — lebihan dikembalikan kepada waris (pasangan tidak menerima radd).");
+      } else {
+        baitulmal=residue;
+        notes.push("Tiada waris asabah atau penerima radd — lebihan diserahkan kepada Baitulmal.");
+      }
+    }
+  }
+  return finalize();
+
+  /* ---- helpers (closures) ---- */
+  function dist2to1(maleIds,femaleIds,R){
+    let M=0,Fh=0; maleIds.forEach(i=>M+=cnt(i)); femaleIds.forEach(i=>Fh+=cnt(i));
+    const u=2*M+Fh;
+    maleIds.forEach(i=>shares[i]=fm(R,F(2*cnt(i),u)));
+    femaleIds.forEach(i=>shares[i]=fm(R,F(cnt(i),u)));
+  }
+  function distEqual(ids,R){
+    let N=0; ids.forEach(i=>N+=cnt(i));
+    ids.forEach(i=>shares[i]=fm(R,F(cnt(i),N)));
+  }
+  function gfSiblings(R){
+    const useFull=effBk||effSk;
+    const bro=useFull?'bk':'bt', sis=useFull?'sk':'st';
+    const m=(useFull?effBk:effBt)?cnt(bro):0;
+    const f=(useFull?effSk:effSt)?cnt(sis):0;
+    // grandfather = best of: muqasamah / 1/3 of remainder / 1/6 of whole estate
+    let gf=fm(R,F(2,2*(m+1)+f));
+    const third=fd(R,F(3,1)), sixth=F(1,6);
+    if(fcmp(third,gf)>0) gf=third;
+    if(fcmp(sixth,gf)>0) gf=sixth;
+    if(fcmp(gf,R)>0) gf=R;
+    shares.d=fa(shares.d||ZERO,gf);
+    const rem=fs(R,gf), u=2*m+f;
+    if(u>0){ if(m>0)shares[bro]=fm(rem,F(2*m,u)); if(f>0)shares[sis]=fm(rem,F(f,u)); }
+    else shares.d=fa(shares.d,rem);
+    notes.push("Datuk berkongsi dengan adik-beradik (muqasamah / 1/3 baki / 1/6 — mana lebih baik untuk datuk).");
+  }
+  function applyMushtaraka(){
+    const u=shares.ss;
+    const heads=cnt('ss')+cnt('bk')+(effSk?cnt('sk'):0);
+    shares.ss=fm(u,F(cnt('ss'),heads));
+    shares.bk=fm(u,F(cnt('bk'),heads));
+    if(effSk) shares.sk=fm(u,F(cnt('sk'),heads));
+    notes.push("Kes Musytarakah — adik-beradik kandung berkongsi bahagian 1/3 dengan adik-beradik seibu.");
+  }
+  function assignAsabah(R){
+    if(has('al')){ dist2to1(['al'], has('ap')?['ap']:[], R); return true; }
+    if(effCl){ dist2to1(['cl'], effCp?['cp']:[], R); return true; }
+    if(has('b')){ shares.b=fa(shares.b||ZERO,R); return true; }
+    if(effD && hasSiblings){ gfSiblings(R); return true; }
+    if(effD){ shares.d=fa(shares.d||ZERO,R); return true; }
+    if(effBk){ dist2to1(['bk'], effSk?['sk']:[], R); return true; }
+    if(fullSisResiduary){ distEqual(['sk'], R); return true; }
+    if(effBt){ dist2to1(['bt'], effSt?['st']:[], R); return true; }
+    if(consSisResiduary){ distEqual(['st'], R); return true; }
+    for(const id of ['nk','nt']){ if(has(id)){ distEqual([id],R); return true; } }
+    for(const id of ['uk','ut','ck','ct']){ if(has(id)){ shares[id]=R; return true; } }
+    return false;
+  }
+  function finalize(){
+    const denoms=[];
+    Object.keys(shares).forEach(k=>{ if(!fzero(shares[k])) denoms.push(shares[k].d); });
+    if(!fzero(baitulmal)) denoms.push(baitulmal.d);
+    const base=denoms.reduce((a,b)=>lcm(a,b),1);
+    const rows=[];
+    HEIRS.forEach(h=>{
+      const sh=shares[h.id];
+      if(sh && !fzero(sh)){
+        const c=cnt(h.id)||1;
+        rows.push({id:h.id,label:h.label,count:c,frac:sh,perHead:fd(sh,F(c,1)),
+                   percent:fval(sh)*100, siham:sh.n*(base/sh.d)});
+      }
+    });
+    const bRow = fzero(baitulmal)?null:
+      {id:'baitulmal',label:'Baitulmal',count:1,frac:baitulmal,percent:fval(baitulmal)*100,siham:baitulmal.n*(base/baitulmal.d)};
+    const blockedIds=HEIRS.filter(h=>(sel[h.id]>0)&&(!shares[h.id]||fzero(shares[h.id]))).map(h=>h.id);
+    return {rows,baitulmal:bRow,base,notes,blocked:blockedIds};
+  }
+}
+
+/* ============================================================
+   STATE + persistence (localStorage ~ Hive box 'faraid')
+   ============================================================ */
+const STORE_KEY='faraid_web_state';
+let state={sel:{}, assets:[], loans:[]};
+
+/* First-run sample: a typical Malaysian (B40) estate, so a new user sees
+   realistic example data instead of an empty list. Replaced as soon as the
+   user edits their own data (their first save overwrites this). */
+const DEFAULT_ASSETS=[
+  {type:'property',label:'Rumah PPR / Teres',     amount:180000,isLoan:true, isInsured:true, loanAmount:120000}, // pinjaman dilindungi MRTT
+  {type:'vehicle', label:'Kereta (Perodua Axia)', amount:25000, isLoan:true, isInsured:false,loanAmount:15000},  // sewa beli
+  {type:'vehicle', label:'Motosikal',             amount:4000,  isLoan:false,isInsured:false,loanAmount:0},
+  {type:'kwsp',    label:'Simpanan KWSP',         amount:30000, isLoan:false,isInsured:false,loanAmount:0},
+  {type:'asb',     label:'ASB / ASNB',            amount:5000,  isLoan:false,isInsured:false,loanAmount:0},
+  {type:'savings', label:'Akaun Simpanan',        amount:3000,  isLoan:false,isInsured:false,loanAmount:0},
+  {type:'th',      label:'Tabung Haji',           amount:2000,  isLoan:false,isInsured:false,loanAmount:0},
+];
+const DEFAULT_LOANS=[
+  {label:'Pinjaman PTPTN',    amount:8000, isInsured:false},
+  {label:'Pinjaman Peribadi', amount:5000, isInsured:false},
+  {label:'Baki Kad Kredit',   amount:1500, isInsured:false},
+];
+function seedDefaults(){
+  state.assets=DEFAULT_ASSETS.map(a=>Object.assign({},a));
+  state.loans =DEFAULT_LOANS.map(l=>Object.assign({},l));
+}
+function load(){
+  try{
+    const r=localStorage.getItem(STORE_KEY);
+    if(r){ state=Object.assign(state,JSON.parse(r)); return; }
+  }catch(e){ return; }
+  seedDefaults(); // no stored state yet → first run
+}
+function save(){ try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){} }
+
+const RM=new Intl.NumberFormat('ms-MY',{style:'currency',currency:'MYR',minimumFractionDigits:2});
+
+/* ============================================================
+   FARAID VIEW rendering
+   ============================================================ */
+const heirGrid=document.getElementById('heirGrid');
+function maxFor(h){ return h.id==='is'?4:9; }
+
+function toggleHeir(id){
+  const h=HEIRS.find(x=>x.id===id);
+  if(state.sel[id]){ delete state.sel[id]; }
+  else{
+    if(id==='s')  delete state.sel['is'];   // spouse mutually exclusive
+    if(id==='is') delete state.sel['s'];
+    state.sel[id]=1;
+  }
+  save(); renderFaraid();
+}
+function stepHeir(id,delta,ev){
+  ev.stopPropagation();
+  const h=HEIRS.find(x=>x.id===id);
+  const cur=state.sel[id]||0;
+  let next=cur+delta;
+  if(next<1){ delete state.sel[id]; }
+  else state.sel[id]=Math.min(next, maxFor(h));
+  save(); renderFaraid();
+}
+
+function renderFaraid(){
+  const res=solveFaraid(state.sel);
+  const blocked=new Set(res.blocked);
+  heirGrid.innerHTML='';
+  HEIRS.forEach(h=>{
+    const sel=state.sel[h.id]>0;
+    const div=document.createElement('div');
+    div.className='heir'+(sel?(blocked.has(h.id)?' blocked':' sel'):'');
+    div.onclick=()=>toggleHeir(h.id);
+    // Static stack: every card has label / mahjub / counter rows, so its size never changes.
+    const lbl=document.createElement('div'); lbl.className='lbl'; lbl.textContent=h.label;
+    const mj=document.createElement('div'); mj.className='mahjub'; mj.textContent='mahjub';
+    const st=document.createElement('div'); st.className='stepper';
+    if(h.multi && sel){
+      const minus=document.createElement('button'); minus.textContent='−';
+      minus.onclick=e=>stepHeir(h.id,-1,e);
+      const span=document.createElement('span'); span.textContent=state.sel[h.id];
+      const plus=document.createElement('button'); plus.textContent='+';
+      plus.onclick=e=>stepHeir(h.id,1,e);
+      st.append(minus,span,plus);
+    }
+    div.append(lbl,mj,st);
+    heirGrid.appendChild(div);
+  });
+  renderResult(res);
+}
+
+function renderResult(res){
+  const pie=document.getElementById('pie');
+  const legend=document.getElementById('legend');
+  const notes=document.getElementById('notes');
+  const basebar=document.getElementById('basebar');
+  legend.innerHTML=''; notes.innerHTML='';
+  const all=res.rows.slice(); if(res.baitulmal) all.push(res.baitulmal);
+
+  if(all.length===0){
+    pie.className='pie empty'; pie.textContent='Belum ada waris dipilih'; pie.style.background='';
+    basebar.style.display='none';
+    return;
+  }
+  // pie via conic-gradient
+  let acc=0, stops=[];
+  all.forEach((r,i)=>{
+    const c=PIE_COLORS[i%PIE_COLORS.length];
+    const start=acc, end=acc+r.percent; acc=end;
+    stops.push(`${c} ${start.toFixed(3)}% ${end.toFixed(3)}%`);
+  });
+  pie.className='pie'; pie.textContent='';
+  pie.style.background=`conic-gradient(${stops.join(',')})`;
+
+  all.forEach((r,i)=>{
+    const c=PIE_COLORS[i%PIE_COLORS.length];
+    const row=document.createElement('div'); row.className='row';
+    let sub=`bahagian ${ffmt(r.frac)} • ${r.siham}/${res.base} sihm`;
+    if(r.count>1) sub+=` • ${(r.percent/r.count).toFixed(2)}% seorang`;
+    row.innerHTML=`<span class="sw" style="background:${c}"></span>
+      <span class="nm">${r.label}${r.count>1?` ×${r.count}`:''}<span class="sub">${sub}</span></span>
+      <span class="pct">${r.percent.toFixed(2)}%</span>`;
+    legend.appendChild(row);
+  });
+  res.notes.forEach(n=>{ const d=document.createElement('div'); d.className='note'; d.textContent=n; notes.appendChild(d); });
+  basebar.style.display='flex';
+  basebar.innerHTML=`<span>Asal Masalah (asas)</span><span>${res.base}</span>`;
+}
+
+/* ============================================================
+   ASSETS VIEW rendering
+   Net estate = all asset values − outstanding uninsured debts.
+   (Insured debts are settled by insurance, so they are NOT deducted.)
+   ============================================================ */
+function loanDeduction(a){ return (a.isLoan && !a.isInsured) ? (Number(a.loanAmount)||0) : 0; }
+function liabilityDeduction(l){ return l.isInsured ? 0 : (Number(l.amount)||0); }
+function grossTotal(){ return state.assets.reduce((s,a)=> s + (Number(a.amount)||0), 0); }
+function debtTotal(){
+  const assetDebt = state.assets.reduce((s,a)=> s + loanDeduction(a), 0);
+  const standaloneDebt = (state.loans||[]).reduce((s,l)=> s + liabilityDeduction(l), 0);
+  return assetDebt + standaloneDebt;
+}
+function netTotal(){ return Math.max(0, grossTotal()-debtTotal()); }
+
+function renderAssets(){
+  const gross=grossTotal(), debt=debtTotal(), net=netTotal();
+  document.getElementById('assetTotal').textContent=RM.format(net);
+  const note=document.getElementById('totalNote');
+  if(debt>0 && gross-debt<0) note.textContent=`Aset ${RM.format(gross)} − hutang ${RM.format(debt)} — harta tidak mencukupi untuk menyelesaikan hutang.`;
+  else if(debt>0) note.textContent=`Aset ${RM.format(gross)} − hutang tanpa insurans ${RM.format(debt)}`;
+  else note.textContent='';
+
+  const list=document.getElementById('assetList'); list.innerHTML='';
+  if(state.assets.length===0){
+    list.innerHTML='<div class="empty-state">Belum ada aset. Tekan “+ Tambah Aset”.</div>';
+  } else {
+    state.assets.forEach((a,idx)=>{
+      const la=Number(a.loanAmount)||0;
+      const reduced=a.isLoan && !a.isInsured && la>0;
+      const eff=reduced ? a.amount-la : a.amount;
+      let tag='';
+      if(a.isLoan && a.isInsured) tag=`<div class="tag ins">Berhutang ${RM.format(la)} — dilindungi insurans</div>`;
+      else if(a.isLoan && !a.isInsured && la>0) tag=`<div class="tag">− Hutang ${RM.format(la)} ditolak</div>`;
+      const div=document.createElement('div'); div.className='asset';
+      div.innerHTML=`<span class="type">${ASSET_NAME[a.type]||a.type}</span>
+        <div class="meta"><div class="nm">${escapeHtml(a.label)}</div>${tag}</div>
+        <span class="amt">${reduced?`<span class="strike">${RM.format(a.amount)}</span>`:''}${RM.format(eff)}</span>`;
+      const del=document.createElement('button'); del.className='del'; del.textContent='🗑';
+      del.title='Padam'; del.onclick=()=>{ state.assets.splice(idx,1); save(); renderAssets(); };
+      div.appendChild(del); list.appendChild(div);
+    });
+  }
+
+  // standalone debts / liabilities
+  const llist=document.getElementById('loanList'); llist.innerHTML='';
+  const loans=state.loans||[];
+  if(loans.length===0){
+    llist.innerHTML='<div class="empty-state">Belum ada hutang direkodkan.</div>';
+  } else {
+    loans.forEach((l,idx)=>{
+      const amt=Number(l.amount)||0;
+      const tag=l.isInsured
+        ? `<div class="tag ins">Dilindungi insurans — tidak ditolak</div>`
+        : `<div class="tag">− Ditolak daripada harta</div>`;
+      const div=document.createElement('div'); div.className='asset debt';
+      div.innerHTML=`<span class="type">Hutang</span>
+        <div class="meta"><div class="nm">${escapeHtml(l.label)}</div>${tag}</div>
+        <span class="amt">${l.isInsured?'':'− '}${RM.format(amt)}</span>`;
+      const del=document.createElement('button'); del.className='del'; del.textContent='🗑';
+      del.title='Padam'; del.onclick=()=>{ state.loans.splice(idx,1); save(); renderAssets(); };
+      div.appendChild(del); llist.appendChild(div);
+    });
+  }
+
+  // distribution = faraid % x net assets
+  const dist=document.getElementById('distList'); dist.innerHTML='';
+  const res=solveFaraid(state.sel);
+  const all=res.rows.slice(); if(res.baitulmal) all.push(res.baitulmal);
+  if(all.length===0){ dist.innerHTML='<div class="empty-state">Pilih waris di skrin Faraid dahulu.</div>'; return; }
+  all.forEach((r,i)=>{
+    const c=PIE_COLORS[i%PIE_COLORS.length];
+    const amt=fval(r.frac)*net;
+    const row=document.createElement('div'); row.className='row';
+    let sub=`${r.percent.toFixed(2)}%`;
+    if(r.count>1) sub+=` • ${RM.format(amt/r.count)} seorang`;
+    row.innerHTML=`<span class="sw" style="background:${c}"></span>
+      <span class="nm">${r.label}${r.count>1?` ×${r.count}`:''}<span class="sub">${sub}</span></span>
+      <span class="pct">${RM.format(amt)}</span>`;
+    dist.appendChild(row);
+  });
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+/* ============================================================
+   ADD ASSET modal
+   ============================================================ */
+const modal=document.getElementById('modal');
+let curType=null, swLoan=false, swInsured=false;
+function openModal(){ modal.classList.add('open'); showStep(1); buildTypeGrid(); }
+function closeModal(){ modal.classList.remove('open'); }
+function showStep(n){
+  document.getElementById('modalStep1').style.display=n===1?'block':'none';
+  document.getElementById('modalStep2').style.display=n===2?'block':'none';
+}
+function buildTypeGrid(){
+  const g=document.getElementById('typeGrid'); g.innerHTML='';
+  ASSET_TYPES.forEach(t=>{
+    const c=document.createElement('div'); c.className='typecard'; c.textContent=t.name;
+    c.onclick=()=>openForm(t); g.appendChild(c);
+  });
+}
+function openForm(t){
+  curType=t; swLoan=false; swInsured=false;
+  document.getElementById('formTitle').textContent=t.name;
+  document.getElementById('fLabel').value='';
+  document.getElementById('fAmount').value='';
+  document.getElementById('fLoan').value='';
+  document.getElementById('formErr').textContent='';
+  document.getElementById('loanWrap').style.display=t.loan?'block':'none';
+  document.getElementById('loanDetail').style.display='none';
+  document.getElementById('swLoan').classList.remove('on');
+  document.getElementById('swInsured').classList.remove('on');
+  showStep(2);
+  setTimeout(()=>document.getElementById('fLabel').focus(),50);
+}
+document.getElementById('swLoan').onclick=function(){
+  swLoan=!swLoan; this.classList.toggle('on',swLoan);
+  document.getElementById('loanDetail').style.display=swLoan?'block':'none';
+  if(!swLoan){
+    swInsured=false; document.getElementById('swInsured').classList.remove('on');
+    document.getElementById('fLoan').value='';
+  }
+};
+document.getElementById('swInsured').onclick=function(){ swInsured=!swInsured; this.classList.toggle('on',swInsured); };
+
+// only digits + thousands separator in money fields
+function attachMoneyInput(el){
+  el.addEventListener('input',function(){
+    const digits=this.value.replace(/\D/g,'');
+    this.value=digits?Number(digits).toLocaleString('en-US'):'';
+  });
+}
+attachMoneyInput(document.getElementById('fAmount'));
+attachMoneyInput(document.getElementById('fLoan'));
+function parseAmount(v){ const d=v.replace(/[^\d]/g,''); return d?parseInt(d,10):NaN; }
+
+document.getElementById('saveAsset').onclick=function(){
+  const label=document.getElementById('fLabel').value.trim();
+  const amount=parseAmount(document.getElementById('fAmount').value);
+  const err=document.getElementById('formErr');
+  if(!label){ err.textContent='Sila isi nama aset.'; return; }
+  if(isNaN(amount)||amount<=0){ err.textContent='Sila isi nilai aset yang sah.'; return; }
+  let loanAmount=0;
+  if(swLoan){
+    loanAmount=parseAmount(document.getElementById('fLoan').value);
+    if(isNaN(loanAmount)||loanAmount<=0){ err.textContent='Sila isi baki pinjaman yang sah.'; return; }
+  }
+  state.assets.push({type:curType.id,label,amount,isLoan:!!swLoan,isInsured:!!swInsured,loanAmount});
+  save(); closeModal(); renderAssets();
+};
+document.getElementById('cancelAsset').onclick=()=>{
+  // back to type picker if a type was chosen, else close
+  showStep(1);
+};
+modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
+
+/* ============================================================
+   ADD LOAN modal (standalone debts / liabilities)
+   ============================================================ */
+const loanModal=document.getElementById('loanModal');
+let swLoanInsured=false;
+function openLoanModal(){
+  swLoanInsured=false;
+  document.getElementById('lLabel').value='';
+  document.getElementById('lAmount').value='';
+  document.getElementById('loanErr').textContent='';
+  document.getElementById('swLoanInsured').classList.remove('on');
+  loanModal.classList.add('open');
+  setTimeout(()=>document.getElementById('lLabel').focus(),50);
+}
+function closeLoanModal(){ loanModal.classList.remove('open'); }
+document.getElementById('swLoanInsured').onclick=function(){ swLoanInsured=!swLoanInsured; this.classList.toggle('on',swLoanInsured); };
+attachMoneyInput(document.getElementById('lAmount'));
+document.getElementById('saveLoan').onclick=function(){
+  const label=document.getElementById('lLabel').value.trim();
+  const amount=parseAmount(document.getElementById('lAmount').value);
+  const err=document.getElementById('loanErr');
+  if(!label){ err.textContent='Sila isi nama hutang.'; return; }
+  if(isNaN(amount)||amount<=0){ err.textContent='Sila isi jumlah hutang yang sah.'; return; }
+  if(!state.loans) state.loans=[];
+  state.loans.push({label,amount,isInsured:!!swLoanInsured});
+  save(); closeLoanModal(); renderAssets();
+};
+document.getElementById('cancelLoan').onclick=closeLoanModal;
+loanModal.addEventListener('click',e=>{ if(e.target===loanModal) closeLoanModal(); });
+document.getElementById('addLoanBtn').onclick=openLoanModal;
+
+/* ============================================================
+   Navigation + wiring
+   ============================================================ */
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  window.scrollTo(0,0);
+  if(name==='faraid') renderFaraid();
+  if(name==='assets') renderAssets();
+  history.replaceState(null,'',name==='assets'?'#assets':'#faraid');
+}
+document.getElementById('toAssets').onclick=()=>showView('assets');
+document.getElementById('backFaraid').onclick=()=>showView('faraid');
+document.getElementById('addAssetBtn').onclick=openModal;
+document.getElementById('resetBtn').onclick=()=>{
+  if(confirm('Set semula pilihan waris?')){ state.sel={}; save(); renderFaraid(); }
+};
+
+/* ---- boot (splash -> faraid), like SplashView ---- */
+load();
+renderFaraid();
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    const sp=document.getElementById('splash'); sp.classList.add('hide');
+    const start=(location.hash==='#assets')?'assets':'faraid';
+    showView(start);
+    setTimeout(()=>sp.remove(),450);
+  },650);
+});
+</script>
+</body>
+</html>
