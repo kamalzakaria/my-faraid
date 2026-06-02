@@ -6,15 +6,41 @@ a Malaysian Islamic inheritance (Faraid) calculator + asset inventory.
 - **No build step, no frameworks.** Everything is in `public/index.html` (HTML + CSS + JS).
 - Calculations follow **Shāfiʿī / Malaysian practice** (includes *radd*).
 - State persists in the browser via `localStorage` (the web analogue of the app's Hive box).
+- A **Cadangan Perancangan Harta** funnel recommends complementary Islamic estate-planning
+  products (Takaful Hibah, Hibah Amanah, Wasiat) based on the faraid result and asset/debt picture.
 
 ## UX flow
-`Splash → Faraid (pick heirs, see shares + pie) → Aset (list assets + debts, net total, RM distribution)`
-— mirrors the original `SplashView → FaraidView → AssetsView → AddAssetView`.
+`Splash → Dashboard (net estate, quick nav, distribution summary, planning recommendations)
+→ Faraid (pick heirs, see shares + pie) → Aset (list assets + debts, net total, RM distribution)`.
 
 The Aset view has two inventories: **Aset** (assets, optionally with a secured loan attached,
 e.g. a mortgaged property) and **Hutang & Liabiliti** (standalone debts not tied to an asset —
 personal loans, credit cards, funeral costs). Both feed one **net divisible estate** that the
 faraid percentages are then applied to.
+
+## Estate-planning funnel (Cadangan Perancangan Harta)
+After heirs and assets are entered, the Dashboard ranks complementary products and explains
+*why each applies to this user* (quoting their own RM figures and heirs). The product lines:
+
+- **Takaful Hibah — Takaful Ikhlas** (e.g. *IKHLAS Dariku* hibah takaful, *Preferred Term* for
+  loan protection): instant cash that bypasses the frozen estate — for debt/liquidity.
+- **Hibah — Wasiyyah Shoppe** (*HBB* for mortgaged property, *Hibah Hartanah* for owned property,
+  *Hibah Mutlak* for cash/ASB, *Hibah Amanah* trust for minors): transfer specific assets outside faraid.
+- **Wasiat — Wasiyyah Shoppe**: bequeath ≤1/3 to non-heirs, appoint a guardian/executor.
+- **Al-Wasitah — Wasiyyah Shoppe**: estate-administration cover (anti *harta beku*). Recommended
+  to **everyone** at medium priority — it never overrides a more urgent debt/property recommendation,
+  but surfaces as the default suggestion on an otherwise healthy estate.
+
+The CTA opens a prefilled **WhatsApp** message to the configured agent; the user's estate summary
+is only sent on an explicit click. The property reason adapts (HBB when the house is mortgaged,
+Hibah Hartanah when it's owned).
+
+> **Framing.** Faraid is *fardhu*; these products are **complements, never replacements**.
+> Hibah and Takaful Hibah are recognised in Malaysian fatwa practice. Copy never implies faraid
+> is unjust, and the disclaimer notes this is **not final financial/syariah advice**.
+
+The pure rule logic is `recommendProducts(signals)` (unit-tested in `test.mjs`); the only block a
+seller edits is the `FUNNEL` config object (WhatsApp number, product names/links/copy).
 
 ## Deploy to GitLab Pages
 

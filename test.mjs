@@ -93,5 +93,68 @@ atest('Mixed: asset loan + standalone debt both deducted',
 atest('Standalone debts exceeding estate clamp to 0',
   [{amount:40000}], 0, [{amount:60000,isInsured:false}]);
 
+// --- funnel rule engine (pure: operates on a `signals` object, logic only) ---
+const recommendProducts = new Function(engine + '\n;return recommendProducts;')();
+function sig(over){
+  return Object.assign({
+    hasSpouse:false, spouseId:null, spousePct:0,
+    hasSon:false, hasGrandsonEff:false, hasMaleDescendant:false, hasDaughter:false, hasDescendant:false,
+    inheritingHeads:0, asalMasalah:1, baitulmalPct:0, noHeirs:false,
+    gross:0, debt:0, net:0, debtRatio:0, underwater:false,
+    hasProperty:false, propertyValue:0, propertyHasLoan:false, liquidRatio:1, uninsuredPropertyLoan:false, hasTakafulHibah:false,
+  }, over||{});
+}
+function rtest(name, signals, check){
+  const rec = recommendProducts(signals);
+  const codes = rec.triggers.map(t=>t.code);
+  let ok=true;
+  try{ ok = check(rec, codes) !== false; }catch(e){ ok=false; }
+  if(ok){ pass++; console.log(`✓ ${name}`); }
+  else { fail++; console.log(`✗ ${name}  codes=[${codes.join(',')}] primary=${rec.primary&&rec.primary.product}`); }
+}
+rtest('Underwater estate → takaful_hibah primary',
+  sig({gross:100000,debt:120000,underwater:true,debtRatio:1.2}),
+  (r,c)=> c.includes('underwater') && !c.includes('high_debt') && r.primary.product==='takaful_hibah');
+rtest('High debt (ratio>=0.5, not underwater) → high_debt',
+  sig({gross:100000,debt:50000,debtRatio:0.5}),
+  (r,c)=> c.includes('high_debt') && !c.includes('underwater') && r.primary.product==='takaful_hibah');
+rtest('debtRatio just under 0.5 → no high_debt',
+  sig({gross:100000,debt:49000,debtRatio:0.49}),
+  (r,c)=> !c.includes('high_debt'));
+rtest('Daughters, no son → no_son, hibah_amanah primary',
+  sig({hasDaughter:true,hasDescendant:true,inheritingHeads:2}),
+  (r,c)=> c.includes('no_son') && r.primary.product==='hibah_amanah');
+rtest('Property + spouse → property_to_spouse',
+  sig({hasProperty:true,propertyValue:180000,hasSpouse:true,spouseId:'is',hasDescendant:true,inheritingHeads:3,gross:180000,liquidRatio:0}),
+  (r,c)=> c.includes('property_to_spouse') && c.includes('fragmentation'));
+rtest('Baitulmal share → baitulmal (critical)',
+  sig({baitulmalPct:50,inheritingHeads:1}),
+  (r,c)=> { const b=r.triggers.find(t=>t.code==='baitulmal'); return c.includes('baitulmal') && b.severity===3 && r.primary.product==='wasiat'; });
+rtest('Empty estate → only baselines (wasiat info + al-wasitah medium)',
+  sig({noHeirs:true,gross:0}),
+  (r,c)=> c.length===2 && c.includes('baseline_wasiat') && c.includes('baseline_wasitah') && r.primary.product==='al_wasitah');
+rtest('Al-Wasitah fires for everyone at medium severity',
+  sig({al:1,hasMaleDescendant:true,hasDescendant:true,inheritingHeads:1,gross:50000}),
+  (r,c)=> { const w=r.triggers.find(t=>t.code==='baseline_wasitah'); return c.includes('baseline_wasitah') && w.product==='al_wasitah' && w.severity===1; });
+rtest('Healthy estate (heirs, no debt/property issues) → al_wasitah primary',
+  sig({al:1,hasMaleDescendant:true,hasDescendant:true,inheritingHeads:1,gross:50000}),
+  (r,c)=> r.primary.product==='al_wasitah');
+rtest('Al-Wasitah does NOT outrank an urgent (high/critical) recommendation',
+  sig({underwater:true,gross:100000,debt:120000,debtRatio:1.2}),
+  (r,c)=> c.includes('baseline_wasitah') && r.primary.product==='takaful_hibah');
+rtest('inheritingHeads 2 + property → no fragmentation',
+  sig({hasProperty:true,inheritingHeads:2,gross:100000}),
+  (r,c)=> !c.includes('fragmentation'));
+rtest('inheritingHeads 3 + property → fragmentation',
+  sig({hasProperty:true,inheritingHeads:3,gross:100000}),
+  (r,c)=> c.includes('fragmentation'));
+rtest('Spouse, no descendant → no_descendant_spouse',
+  sig({hasSpouse:true,spouseId:'s',spousePct:50,hasDescendant:false,inheritingHeads:1}),
+  (r,c)=> c.includes('no_descendant_spouse') && !c.includes('no_son'));
+// Critical tie: baseline_wasiat (info) must NOT let Wasiat outrank an underwater Takaful.
+rtest('Underwater + baitulmal → takaful_hibah beats wasiat',
+  sig({hasSpouse:true,spouseId:'s',spousePct:50,baitulmalPct:50,underwater:true,gross:100000,debt:130000,debtRatio:1.3,inheritingHeads:1}),
+  (r,c)=> c.includes('underwater') && c.includes('baitulmal') && r.primary.product==='takaful_hibah');
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail?1:0);

@@ -44,6 +44,16 @@ labeled sections (search for the `/* ===... */` banners):
     `distEqual`, `gfSiblings` (grandfather muqāsamah), and `applyMushtaraka` live here.
   - **`finalize()`** computes the common base (LCM of denominators → *asal masalah*),
     per-head shares, percentages, and *siham*.
+- **`recommendProducts(signals)` + `rank` + `FUNNEL_RULES`** — the product-funnel rule engine.
+  Lives right after `solveFaraid` so it stays **inside the test engine slice**, and is **pure**
+  (operates only on the `signals` arg — no DOM/state). Fires rules R1–R12, returns
+  `{ triggers, ranked, primary }`. Four products: `takaful_hibah`, `hibah_amanah`, `wasiat`,
+  `al_wasitah`. Severity scale `critical=3 > high=2 > medium=1 > info=0`. Two **always-on**
+  baselines: `baseline_wasiat` (info → wasiat) and `baseline_wasitah` (**medium → al_wasitah**,
+  by request — Al-Wasitah estate-admin is recommended to everyone). Ranking tiebreak uses `weight`
+  (count of sev>0 triggers) so an always-on info baseline can't pad a product into winning a
+  critical tie; `al_wasitah` is last in the fixed-order tiebreak so it only becomes `primary`
+  when nothing else reaches medium (i.e. a healthy estate).
 - **State + persistence** — `state = {sel, assets, loans}`, persisted to `localStorage`
   under `faraid_web_state` (the web analogue of the Flutter Hive box). `loans` is a later
   addition, so net-total math guards it as `(state.loans||[])` for backward compatibility.
@@ -57,7 +67,14 @@ labeled sections (search for the `/* ===... */` banners):
   an **uninsured** loan's outstanding balance is deducted; an insolvent estate clamps to 0.
   Standalone debts live in `state.loans` (`{label, amount, isInsured}`) — debts not tied to a
   specific asset (personal loans, credit cards, funeral costs) — and follow the same insured rule.
-- **Add-asset modal** and **navigation/boot** wiring round out the file.
+  `renderDashboard()` (landing view) shows the net estate, stats, distribution summary, and the funnel.
+- **Funnel rendering** — `buildFunnelSignals()` (state → `signals`), `FUNNEL` (seller config:
+  WhatsApp/products/copy), `FUNNEL_COPY` (code+data → Malay sentence), `renderFunnelInto`/
+  `renderFunnel` (ranked cards), `openFunnelModal` (product detail + WhatsApp CTA), and
+  `renderFaraidNudge` (slim banner on the faraid panel). All of this sits **after `renderAssets`**
+  so it stays **outside** the `loanDeduction…renderAssets` asset slice. The WhatsApp deep link is
+  built from current state and only sent on an explicit click.
+- **Add-asset modal**, **product-detail modal**, and **navigation/boot** wiring round out the file.
 
 ## Tests are coupled to the source by string-slicing (important)
 
@@ -68,13 +85,16 @@ extracts the `<script>` body, then **slices out the engine by literal markers**:
   `/* ====... STATE + persistence`.
 - The asset block is sliced from `function loanDeduction` to `\nfunction renderAssets`.
 
-It then rebuilds `solveFaraid` / `netTotal` with `new Function(...)`. Consequences:
+It then rebuilds `solveFaraid` / `netTotal` / `recommendProducts` with `new Function(...)`
+(the funnel rule engine is extracted the same way, since it lives in the engine slice). Consequences:
 
 - If you rename `loanDeduction`/`renderAssets`, move the asset functions, or change
   that section-banner comment text, **the tests silently extract the wrong slice and break**.
   Keep those names and the banner wording, or update the slice markers in `test.mjs` to match.
 - The extracted engine must stay self-contained (no references to DOM/state from
-  inside `solveFaraid` or the asset math functions).
+  inside `solveFaraid`, `recommendProducts`, or the asset math functions). `recommendProducts`
+  must keep operating only on its `signals` arg; the state→signals adapter `buildFunnelSignals`
+  stays in the render region (outside the slice).
 
 Each test asserts exact fractions per heir *and* that all shares sum to exactly 1
 (or sum + Baitulmal = 1). When changing the engine, add a case here.

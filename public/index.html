@@ -116,6 +116,58 @@
   .splash.hide{opacity:0;pointer-events:none}
   .splash h1{margin:0;font-size:1.6rem}
   .splash p{margin:0;opacity:.8;font-size:.85rem}
+
+  /* ---- Dashboard ---- */
+  .hero{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border-radius:16px;
+    padding:22px;margin-bottom:14px;box-shadow:0 4px 14px rgba(91,58,158,.25)}
+  .hero .lbl{font-size:.85rem;opacity:.85}
+  .hero .amt{font-size:2rem;font-weight:700;margin-top:4px;line-height:1.1}
+  .hero .sub{font-size:.78rem;opacity:.82;margin-top:8px}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 8px;text-align:center}
+  .stat .num{font-size:1.6rem;font-weight:700;color:var(--primary-dark);line-height:1}
+  .stat .cap{font-size:.72rem;color:var(--muted);margin-top:4px}
+  .nav-tiles{display:grid;grid-template-columns:1fr;gap:10px}
+  @media(min-width:680px){.nav-tiles{grid-template-columns:1fr 1fr}}
+  .tile{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:16px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%;transition:.12s}
+  .tile:hover{border-color:var(--primary);box-shadow:0 2px 10px rgba(91,58,158,.12)}
+  .tile .ic{font-size:1.8rem;line-height:1;flex:0 0 auto}
+  .tile .tx{flex:1;min-width:0}
+  .tile .nm{font-weight:600;font-size:1rem}
+  .tile .ds{font-size:.78rem;color:var(--muted)}
+  .tile .ar{font-size:1.2rem;color:var(--primary);font-weight:700;flex:0 0 auto}
+
+  /* ---- Funnel (product recommendations) ---- */
+  .funnel-intro{color:var(--muted);font-size:.8rem;margin:0 0 12px}
+  .funnel-primary{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--primary);
+    border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 2px 10px rgba(91,58,158,.08)}
+  .funnel-chip{display:inline-block;font-size:.66rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    padding:3px 9px;border-radius:20px;background:var(--primary-soft);color:var(--primary-dark);margin-bottom:10px}
+  .funnel-chip.crit{background:#fdecec;color:#c62828}
+  .funnel-head{display:flex;align-items:center;gap:10px}
+  .funnel-head .ic{font-size:1.7rem;line-height:1;flex:0 0 auto}
+  .funnel-head .nm{font-weight:700;font-size:1.02rem;line-height:1.2}
+  .funnel-head .br{font-size:.74rem;color:var(--muted)}
+  .funnel-reason{font-size:.86rem;line-height:1.5;color:var(--ink);margin:10px 0 12px}
+  .funnel-cta{display:flex;gap:8px;flex-wrap:wrap}
+  .funnel-cta .btn{text-decoration:none;text-align:center}
+  .funnel-sec{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;width:100%;text-align:left;font:inherit;color:inherit;transition:.12s}
+  .funnel-sec:hover{border-color:var(--primary)}
+  .funnel-sec .ic{font-size:1.3rem;flex:0 0 auto}
+  .funnel-sec .tx{flex:1;min-width:0}
+  .funnel-sec .nm{font-weight:600;font-size:.9rem}
+  .funnel-sec .ds{font-size:.76rem;color:var(--muted)}
+  .funnel-sec .ar{color:var(--primary);font-weight:700;flex:0 0 auto}
+  .funnel-more{margin-top:6px}
+  .funnel-more summary{font-size:.82rem}
+  .funnel-banner{width:100%;text-align:left;font:inherit;cursor:pointer;background:var(--primary-soft);
+    color:var(--primary-dark);border:0;border-radius:10px;padding:10px 12px;font-size:.82rem;margin-top:12px;line-height:1.4}
+  .funnel-banner:hover{background:#e3d8fb}
+  .fm-reasons .note{margin-top:6px}
+  .fm-syariah{background:#eef7ee;color:#2e7d32;font-size:.78rem;border-radius:8px;padding:8px 10px;margin-top:12px;line-height:1.5}
+  .funnel-config{font-size:.74rem;color:#c62828;margin-top:8px}
 </style>
 </head>
 <body>
@@ -125,9 +177,67 @@
   <p>Memuatkan…</p>
 </div>
 
+<!-- ============ DASHBOARD VIEW ============ -->
+<section id="view-dashboard" class="view">
+  <header class="appbar">
+    <h1>☪ Kalkulator Faraid</h1>
+  </header>
+  <main>
+    <div class="hero">
+      <div class="lbl">Jumlah Harta Boleh Dibahagi</div>
+      <div class="amt" id="dashNet">RM 0.00</div>
+      <div class="sub" id="dashNetSub"></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="num" id="statHeirs">0</div><div class="cap">Waris Dipilih</div></div>
+      <div class="stat"><div class="num" id="statAssets">0</div><div class="cap">Aset</div></div>
+      <div class="stat"><div class="num" id="statDebts">0</div><div class="cap">Hutang</div></div>
+    </div>
+
+    <div class="section-title">Menu</div>
+    <div class="nav-tiles">
+      <button class="tile" id="goFaraid">
+        <span class="ic">🧮</span>
+        <span class="tx">
+          <span class="nm">Kalkulator Faraid</span>
+          <span class="ds">Pilih waris &amp; kira bahagian pusaka</span>
+        </span>
+        <span class="ar">→</span>
+      </button>
+      <button class="tile" id="goAssets">
+        <span class="ic">📋</span>
+        <span class="tx">
+          <span class="nm">Senarai Aset</span>
+          <span class="ds">Rekod aset, hutang &amp; lihat agihan RM</span>
+        </span>
+        <span class="ar">→</span>
+      </button>
+    </div>
+
+    <div class="section-title" style="margin-top:22px">Ringkasan Agihan</div>
+    <div class="panel">
+      <div id="dashDist" class="legend"></div>
+    </div>
+
+    <div class="section-title" style="margin-top:22px">Cadangan Perancangan Harta</div>
+    <p class="funnel-intro">Faraid adalah <em>fardhu</em>. Produk berikut ialah <strong>pelengkap</strong> (bukan ganti)
+      untuk likuiditi, hutang, bukan-waris &amp; hasrat sah dalam had 1/3 / hibah.</p>
+    <div id="funnel"></div>
+
+    <p class="disclaimer">
+      Pengiraan mengikut <strong>mazhab Syafi'i (amalan Malaysia)</strong>, termasuk <em>radd</em>.
+      Alat ini untuk <strong>anggaran &amp; pendidikan</strong>, <strong>bukan nasihat kewangan/syariah
+      muktamad</strong> — rujuk perunding bertauliah. Untuk pembahagian rasmi sila rujuk
+      Mahkamah Syariah / Amanah Raya / pakar faraid bertauliah.
+    </p>
+  </main>
+</section>
+
 <!-- ============ FARAID VIEW ============ -->
 <section id="view-faraid" class="view">
   <header class="appbar">
+    <button class="icon" id="backDashFaraid" title="Kembali">←</button>
     <h1>Kalkulator Faraid</h1>
     <button id="toAssets">Aset →</button>
   </header>
@@ -149,6 +259,7 @@
             <div id="legend" class="legend"></div>
           </div>
           <div id="notes" class="notes"></div>
+          <div id="faraidNudge"></div>
           <div id="basebar" class="basebar" style="display:none"></div>
         </div>
         <p class="disclaimer">
@@ -171,7 +282,7 @@
 <!-- ============ ASSETS VIEW ============ -->
 <section id="view-assets" class="view">
   <header class="appbar">
-    <button class="icon" id="backFaraid" title="Kembali">←</button>
+    <button class="icon" id="backDashAssets" title="Kembali">←</button>
     <h1>Senarai Aset</h1>
   </header>
   <main>
@@ -201,6 +312,9 @@
     <div class="panel">
       <div id="distList" class="legend"></div>
     </div>
+
+    <div class="section-title" style="margin-top:22px">Cadangan Perancangan Harta</div>
+    <div id="assetsFunnel"></div>
   </main>
 </section>
 
@@ -260,6 +374,27 @@
     <div class="actions">
       <button class="btn ghost" id="cancelLoan">Batal</button>
       <button class="btn primary" id="saveLoan" style="flex:1">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ PRODUCT DETAIL MODAL (funnel) ============ -->
+<div id="funnelModal" class="modal-bg">
+  <div class="modal">
+    <div class="funnel-head">
+      <span class="ic" id="fmIcon"></span>
+      <div><div class="nm" id="fmName"></div><div class="br" id="fmBrand"></div></div>
+    </div>
+    <p class="funnel-intro" id="fmTagline" style="margin:8px 0 14px"></p>
+    <div class="section-title" style="font-size:.85rem;margin:0 0 6px">Mengapa relevan untuk anda</div>
+    <div id="fmReasons" class="fm-reasons"></div>
+    <div class="section-title" style="font-size:.85rem;margin:14px 0 4px">Manfaat utama</div>
+    <ul id="fmBenefits" style="font-size:.84rem;line-height:1.55;padding-left:18px;margin:4px 0;color:var(--ink)"></ul>
+    <div class="fm-syariah" id="fmSyariah"></div>
+    <div class="funnel-config" id="fmConfigWarn" style="display:none">⚠ Nombor WhatsApp ejen belum ditetapkan dalam konfigurasi (FUNNEL.whatsapp).</div>
+    <div class="actions">
+      <button class="btn ghost" id="fmClose">Tutup</button>
+      <a class="btn primary" id="fmCta" style="flex:1" target="_blank" rel="noopener">Dapatkan Sebut Harga</a>
     </div>
   </div>
 </div>
@@ -520,6 +655,72 @@ function solveFaraid(sel){
 }
 
 /* ============================================================
+   FUNNEL — product recommendation engine (PURE)
+   Maps a `signals` object (see buildFunnelSignals) to triggered
+   product recommendations. No DOM/state — operates only on the arg,
+   so it lives in the engine slice and is unit-tested in test.mjs.
+   Returns structured codes, not copy; the renderer fills RM/% in Malay.
+   ============================================================ */
+const FUNNEL_RULES = { highDebtRatio: 0.5, illiquidThreshold: 0.2, fragmentationHeads: 3 };
+// severity scale: critical=3 > high=2 > medium=1 > info=0
+function recommendProducts(signals){
+  const s = signals;
+  const t = [];
+  const fire = (code, product, severity, data) => t.push({code, product, severity, data:data||{}});
+  // Never pushy on an empty estate (no heirs picked AND no assets): only the gentle baseline.
+  const estateEmpty = s.noHeirs && (s.gross||0) <= 0;
+
+  if(!estateEmpty){
+    // R1/R2 — debt load (mutually exclusive: underwater supersedes high-debt)
+    if(s.underwater)                                   fire('underwater','takaful_hibah',3,{debt:s.debt,gross:s.gross});
+    else if(s.debtRatio >= FUNNEL_RULES.highDebtRatio) fire('high_debt','takaful_hibah',2,{debt:s.debt,debtRatio:s.debtRatio});
+    // R3 — uninsured property loan (MRTT/MRTA gap)
+    if(s.uninsuredPropertyLoan)                        fire('uninsured_property_loan','takaful_hibah',2);
+    // R4 — illiquid estate (cash crunch during a frozen estate)
+    if(s.gross>0 && !s.underwater && s.liquidRatio < FUNNEL_RULES.illiquidThreshold)
+                                                       fire('illiquid_estate','takaful_hibah',1,{liquidRatio:s.liquidRatio});
+    // R5 — estate leaking to Baitulmal
+    if(s.baitulmalPct>0)                               fire('baitulmal','wasiat',3,{baitulmalPct:s.baitulmalPct});
+    // R6 — spouse with no descendant (shares the estate with in-laws/siblings)
+    if(s.hasSpouse && !s.hasDescendant)                fire('no_descendant_spouse','hibah_amanah',2,{spousePct:s.spousePct});
+    // R7 — daughters, no male descendant (residue to asabah)
+    if(s.hasDaughter && !s.hasMaleDescendant)          fire('no_son','hibah_amanah',2);
+    // R8 — property co-owned with spouse via faraid (HBB if mortgaged, else Hibah Hartanah)
+    if(s.hasProperty && s.hasSpouse)                   fire('property_to_spouse','hibah_amanah',2,{propertyValue:s.propertyValue,mortgaged:!!s.propertyHasLoan});
+    // R9 — property fragmented across many heirs
+    if(s.hasProperty && s.inheritingHeads >= FUNNEL_RULES.fragmentationHeads)
+                                                       fire('fragmentation','hibah_amanah',1,{heads:s.inheritingHeads,base:s.asalMasalah});
+    // R10 — guardianship/trust for minors
+    if(s.hasDescendant)                                fire('minors','wasiat',0);
+  }
+  // R11 — baseline: anyone with an estate can bequeath <=1/3 to non-heirs
+  fire('baseline_wasiat','wasiat',0);
+  // R12 — Al-Wasitah: universal estate-administration cover (avoid a frozen estate).
+  //       Recommended to everyone at medium priority.
+  fire('baseline_wasitah','al_wasitah',1);
+  return rank(t);
+}
+// Group by product (max severity wins), rank, pick primary.
+// Tiebreak count excludes info-level (sev 0) triggers so the always-on
+// baseline_wasiat can't pad Wasiat into winning a critical/high tie.
+function rank(triggers){
+  const order = ['takaful_hibah','hibah_amanah','wasiat','al_wasitah'];
+  const byProduct = {};
+  triggers.forEach(tr=>{ (byProduct[tr.product] = byProduct[tr.product] || []).push(tr); });
+  const ranked = Object.keys(byProduct).map(product=>{
+    const list = byProduct[product].slice().sort((a,b)=>b.severity-a.severity);
+    return { product, severity:list[0].severity,
+             count:list.length, weight:list.filter(x=>x.severity>0).length, triggers:list };
+  });
+  ranked.sort((a,b)=>
+    (b.severity-a.severity) ||
+    (b.weight-a.weight) ||
+    (order.indexOf(a.product)-order.indexOf(b.product))
+  );
+  return { triggers, ranked, primary: ranked[0]||null };
+}
+
+/* ============================================================
    STATE + persistence (localStorage ~ Hive box 'faraid')
    ============================================================ */
 const STORE_KEY='faraid_web_state';
@@ -608,6 +809,7 @@ function renderFaraid(){
     heirGrid.appendChild(div);
   });
   renderResult(res);
+  renderFaraidNudge();
 }
 
 function renderResult(res){
@@ -717,8 +919,8 @@ function renderAssets(){
   const dist=document.getElementById('distList'); dist.innerHTML='';
   const res=solveFaraid(state.sel);
   const all=res.rows.slice(); if(res.baitulmal) all.push(res.baitulmal);
-  if(all.length===0){ dist.innerHTML='<div class="empty-state">Pilih waris di skrin Faraid dahulu.</div>'; return; }
-  all.forEach((r,i)=>{
+  if(all.length===0){ dist.innerHTML='<div class="empty-state">Pilih waris di skrin Faraid dahulu.</div>'; }
+  else all.forEach((r,i)=>{
     const c=PIE_COLORS[i%PIE_COLORS.length];
     const amt=fval(r.frac)*net;
     const row=document.createElement('div'); row.className='row';
@@ -729,8 +931,303 @@ function renderAssets(){
       <span class="pct">${RM.format(amt)}</span>`;
     dist.appendChild(row);
   });
+  renderFunnelInto('assetsFunnel', false);
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+/* ============================================================
+   DASHBOARD rendering (landing page: estate summary + quick nav)
+   ============================================================ */
+function renderDashboard(){
+  const gross=grossTotal(), debt=debtTotal(), net=netTotal();
+  document.getElementById('dashNet').textContent=RM.format(net);
+  const sub=document.getElementById('dashNetSub');
+  if(debt>0 && gross-debt<0) sub.textContent=`Aset ${RM.format(gross)} − hutang ${RM.format(debt)} — harta tidak mencukupi.`;
+  else if(debt>0) sub.textContent=`Aset ${RM.format(gross)} − hutang tanpa insurans ${RM.format(debt)}`;
+  else sub.textContent=`Aset ${RM.format(gross)}`;
+
+  const heirHeads=Object.values(state.sel).reduce((a,b)=>a+(Number(b)||0),0);
+  document.getElementById('statHeirs').textContent=heirHeads;
+  document.getElementById('statAssets').textContent=state.assets.length;
+  document.getElementById('statDebts').textContent=(state.loans||[]).length;
+
+  const dist=document.getElementById('dashDist'); dist.innerHTML='';
+  const res=solveFaraid(state.sel);
+  const all=res.rows.slice(); if(res.baitulmal) all.push(res.baitulmal);
+  if(all.length===0){ dist.innerHTML='<div class="empty-state">Pilih waris di Kalkulator Faraid untuk lihat agihan.</div>'; }
+  else all.forEach((r,i)=>{
+    const c=PIE_COLORS[i%PIE_COLORS.length];
+    const amt=fval(r.frac)*net;
+    const row=document.createElement('div'); row.className='row';
+    const detail=net>0 ? RM.format(amt) : `bahagian ${ffmt(r.frac)}`;
+    row.innerHTML=`<span class="sw" style="background:${c}"></span>
+      <span class="nm">${r.label}${r.count>1?` ×${r.count}`:''}<span class="sub">${detail}</span></span>
+      <span class="pct">${r.percent.toFixed(2)}%</span>`;
+    dist.appendChild(row);
+  });
+  renderFunnel();
+}
+
+/* ============================================================
+   FUNNEL rendering (product recommendations → cards / modal / CTA)
+   Placed AFTER renderAssets so it stays OUTSIDE the test asset slice.
+   recommendProducts (the rule logic) lives in the engine slice; this
+   region only reads state, builds the `signals`, and renders Malay copy.
+   ============================================================ */
+
+/* ---- Configuration — the only block the seller edits ----
+   Set `whatsapp` (MY format, digits only, e.g. 60123456789) and each product
+   `url`/referral link. Until `whatsapp` is set, CTAs fall back to the product URL. */
+const FUNNEL = {
+  agentName: 'Nama Ejen',
+  whatsapp: '',                          // e.g. '60123456789' — digits only, no + or spaces
+  leadMode: 'whatsapp',                  // 'whatsapp' | 'form'
+  formEndpoint: '',                      // used only when leadMode==='form' (Phase 6)
+  products: {
+    takaful_hibah: {
+      brand:'Takaful Ikhlas', name:'Takaful Hibah (IKHLAS Dariku)', icon:'🛡', accent:'#2e7d32', url:'',
+      tagline:'Tunai segera, bebas faraid — untuk hutang & nafkah waris.',
+      benefits:[
+        'IKHLAS Dariku: manfaat kematian sehingga 400% dibayar segera kepada penama — tunai yang memintas harta pusaka beku.',
+        'Tunai untuk menyelesaikan hutang tanpa waris terpaksa menjual aset / rumah dilelong.',
+        'IKHLAS Preferred Term: perlindungan tinggi (hingga RM1 juta) kos rendah — sesuai lindung pinjaman.',
+        'Manfaat dihibahkan kepada penama pilihan (diiktiraf amalan fatwa Malaysia); caruman fleksibel.',
+      ],
+      syariah:'Takaful Hibah berasaskan konsep tabarru’ & hibah, diiktiraf dalam amalan fatwa di Malaysia. Ia melengkapi faraid, bukan menggantikannya. Caruman & manfaat sebenar mengikut Helaian Keterangan Produk (PDS).',
+    },
+    hibah_amanah: {
+      brand:'Wasiyyah Shoppe', name:'Hibah Hartanah / Amanah', icon:'📜', accent:'#5b3a9e', url:'',
+      tagline:'Pindah milik aset tertentu kepada orang pilihan, di luar faraid.',
+      benefits:[
+        'Hibah Hartanah Bercagar (HBB): hibah rumah yang masih ada pinjaman — penyelesaian khas untuk rumah bercagar.',
+        'Hibah Hartanah: rumah/tanah milik penuh dipindah terus kepada pasangan/anak, elak harta beku.',
+        'Hibah Mutlak: tunai, ASB, Tabung Haji & simpanan kepada penerima pilihan untuk likuiditi segera.',
+        'Hibah Amanah: struktur amanah untuk anak bawah umur / OKU — diurus profesional mengikut syarat.',
+      ],
+      syariah:'Hibah ialah pemberian sah semasa hidup. Ia melengkapi faraid untuk aset tertentu dalam had syarak — bukan menafikan hak waris yang lain.',
+    },
+    wasiat: {
+      brand:'Wasiyyah Shoppe', name:'Wasiat', icon:'📝', accent:'#7e57c2', url:'',
+      tagline:'Wasiat ≤1/3, lantik penjaga & wasi.',
+      benefits:[
+        'Wasiatkan sehingga 1/3 harta kepada bukan-waris (anak angkat, badan amal, ibu bapa bukan Islam).',
+        'Lantik penjaga (hadhanah) bagi waris bawah umur.',
+        'Lantik wasi/pentadbir untuk melicinkan pengurusan pusaka.',
+        'Arahkan baki yang berisiko ke Baitulmal kepada pilihan anda.',
+      ],
+      syariah:'Wasiat dibenarkan setakat 1/3 harta kepada bukan-waris (hadis: “sepertiga, dan sepertiga itu banyak”). Ia melengkapi faraid dalam had yang dibenarkan.',
+    },
+    al_wasitah: {
+      brand:'Wasiyyah Shoppe', name:'Al-Wasitah', icon:'🗂', accent:'#00897b', url:'',
+      tagline:'Elak harta beku — bantuan pengurusan pusaka & wasiat untuk waris.',
+      benefits:[
+        'Bantuan pengurusan pusaka: dokumentasi, nasihat waris & urusan dengan mahkamah/pejabat tanah.',
+        'Peruntukan kos pentadbiran pusaka (Mutiara hingga RM20k / Berlian hingga RM60k) supaya waris tidak terbeban.',
+        'Termasuk Dokumen Pelantikan Wasi & Wasiat 1/3 secara percuma + khairat kematian.',
+        'Mengelak “harta beku” yang biasa berlaku apabila waris tidak tahu urusan faraid & pusaka.',
+      ],
+      syariah:'Al-Wasitah ialah khidmat pentadbiran pusaka (bukan hibah) yang membantu waris melaksanakan faraid dengan lancar, termasuk dokumen wasiat 1/3 dalam had syarak.',
+    },
+  },
+};
+const SEV_CHIP = {3:'Paling Relevan', 2:'Disyorkan', 1:'Pertimbangkan', 0:'Info'};
+
+const RM0 = new Intl.NumberFormat('ms-MY',{style:'currency',currency:'MYR',maximumFractionDigits:0});
+
+/* ---- code+data → Malay sentence (renderer-side copy) ---- */
+const FUNNEL_COPY = {
+  underwater: d => `Hutang (${RM0.format(d.debt)}) sama atau melebihi nilai aset (${RM0.format(d.gross)}). Tanpa perancangan, waris berisiko mewarisi hutang atau terpaksa menjual aset. Takaful Hibah memberi tunai segera untuk menyelesaikan hutang.`,
+  high_debt: d => `Hutang ${RM0.format(d.debt)} (≈${Math.round(d.debtRatio*100)}% daripada nilai aset). Takaful Hibah menyediakan dana segera untuk menjelaskan hutang tanpa menjejaskan bahagian waris.`,
+  uninsured_property_loan: () => `Pinjaman hartanah anda belum dilindungi (MRTT/MRTA). Tanpa lindungan, baki pinjaman ditanggung waris dan rumah berisiko dilelong. Takaful Hibah melunaskan baki ini.`,
+  illiquid_estate: () => `Hampir semua harta dalam bentuk tidak cair (hartanah/kenderaan). Proses faraid mengambil masa dan aset boleh dibekukan — Takaful Hibah memberi tunai segera untuk keperluan waris.`,
+  baitulmal: d => `${d.baitulmalPct.toFixed(1)}% harta berisiko diserahkan kepada Baitulmal kerana tiada waris yang layak menerima sepenuhnya. Wasiat (≤1/3) & Hibah membolehkan anda mengarahkannya kepada pilihan anda.`,
+  no_descendant_spouse: d => `Tanpa anak, pasangan hanya menerima ${d.spousePct.toFixed(1)}%; selebihnya kepada ibu bapa & adik-beradik si mati. Hibah Amanah memastikan pasangan mewarisi aset pilihan anda.`,
+  no_son: () => `Tanpa anak lelaki, baki harta (selepas bahagian anak perempuan) jatuh kepada waris asabah lain (bapa / adik-beradik / bapa saudara). Hibah Amanah mengekalkan harta untuk anak perempuan & pasangan.`,
+  property_to_spouse: d => `Rumah / hartanah (${RM0.format(d.propertyValue)}) akan dibahagi secara faraid antara semua waris — pasangan tidak memilikinya sepenuhnya. ${d.mortgaged?'Kerana rumah masih bercagar (ada pinjaman), Hibah Hartanah Bercagar (HBB) memindah milik terus kepada pasangan.':'Hibah Hartanah memindah milik rumah terus kepada pasangan.'}`,
+  fragmentation: d => `Hartanah akan dimiliki bersama ${d.heads} waris (asal masalah ${d.base}). Pemilikan berpecah menyukarkan jualan atau pindah milik. Hibah Hartanah mengelakkan pecahan ini.`,
+  minors: () => `Jika ada waris bawah umur, lantik penjaga (hadhanah) melalui Wasiat & uruskan bahagian mereka melalui Hibah Amanah (struktur amanah).`,
+  baseline_wasiat: () => `Anda boleh mewasiatkan sehingga 1/3 harta kepada bukan-waris (anak angkat, ibu bapa bukan Islam, atau badan amal) melalui Wasiat.`,
+  baseline_wasitah: () => `Pastikan waris tidak terbeban dengan urusan pusaka. Al-Wasitah membantu pentadbiran pusaka & faraid (termasuk Wasiat 1/3 & pelantikan wasi) supaya harta tidak menjadi “beku”.`,
+};
+
+/* ---- derive the signals the rule engine consumes (state → signals) ---- */
+function buildFunnelSignals(){
+  const sel = state.sel || {};
+  const res = solveFaraid(sel);
+  const assets = state.assets || [];
+  const gross = grossTotal(), debt = debtTotal(), net = netTotal();
+  const blocked = new Set(res.blocked);
+  const cnt = id => Number(sel[id]||0);
+
+  const spouseId = cnt('s')>0 ? 's' : (cnt('is')>0 ? 'is' : null);
+  const spouseRow = spouseId ? res.rows.find(r=>r.id===spouseId) : null;
+  const hasSon = cnt('al')>0;
+  const hasGrandsonEff = cnt('cl')>0 && !blocked.has('cl');
+  const hasMaleDescendant = hasSon || hasGrandsonEff;
+  const hasDaughter = cnt('ap')>0;
+  const hasGranddaughterEff = cnt('cp')>0 && !blocked.has('cp');
+  const hasDescendant = hasMaleDescendant || hasDaughter || hasGranddaughterEff;
+
+  let propertyValue=0, illiquid=0, hasProperty=false, hasTakafulHibah=false, uninsuredPropertyLoan=false, propertyHasLoan=false;
+  assets.forEach(a=>{
+    const amt = Number(a.amount)||0;
+    if(a.type==='property'){
+      hasProperty=true; propertyValue+=amt;
+      if(a.isLoan && (Number(a.loanAmount)||0)>0) propertyHasLoan=true;
+      if(a.isLoan && !a.isInsured && (Number(a.loanAmount)||0)>0) uninsuredPropertyLoan=true;
+    }
+    if(a.type==='property' || a.type==='vehicle') illiquid+=amt;
+    if(a.type==='life') hasTakafulHibah=true;
+  });
+
+  return {
+    hasSpouse: !!spouseId, spouseId,
+    spousePct: spouseRow ? spouseRow.percent : 0,
+    hasSon, hasGrandsonEff, hasMaleDescendant, hasDaughter, hasDescendant,
+    inheritingHeads: res.rows.reduce((a,r)=>a+r.count,0),
+    asalMasalah: res.base,
+    baitulmalPct: res.baitulmal ? res.baitulmal.percent : 0,
+    noHeirs: res.rows.length===0,
+    gross, debt, net,
+    debtRatio: gross>0 ? debt/gross : 0,
+    underwater: gross>0 && debt>=gross,
+    hasProperty, propertyValue, propertyHasLoan,
+    liquidRatio: gross>0 ? (gross-illiquid)/gross : 1,
+    uninsuredPropertyLoan, hasTakafulHibah,
+  };
+}
+
+/* ---- CTA: WhatsApp deep link with a prefilled warm-lead summary ----
+   Built from current state; only sent when the user explicitly clicks. */
+function waConfigured(){ return /^\d{10,15}$/.test(String(FUNNEL.whatsapp||'')); }
+function heirSummary(){
+  const parts=[];
+  HEIRS.forEach(h=>{ const n=Number(state.sel[h.id]||0); if(n>0) parts.push(h.label+(n>1?` ×${n}`:'')); });
+  return parts.join(', ') || 'belum dipilih';
+}
+function waLink(productKey){
+  const p = FUNNEL.products[productKey];
+  const s = buildFunnelSignals();
+  const text = `Saya berminat dengan ${p.name} (${p.brand}). Situasi saya: Aset bersih ${RM0.format(s.net)}, hutang ${RM0.format(s.debt)}, waris: ${heirSummary()}. (via Kalkulator Faraid)`;
+  return `https://wa.me/${FUNNEL.whatsapp}?text=${encodeURIComponent(text)}`;
+}
+function ctaHref(productKey){
+  if(FUNNEL.leadMode==='whatsapp' && waConfigured()) return waLink(productKey);
+  const p = FUNNEL.products[productKey];
+  if(p && p.url) return p.url;                 // fall back to official product page
+  return waConfigured() ? waLink(productKey) : '#';
+}
+
+/* ---- render the ranked cards into a host element ----
+   full=true → hero + secondary + "lihat semua"; full=false → hero + link to dashboard. */
+function renderFunnelInto(hostId, full){
+  const host = document.getElementById(hostId);
+  if(!host) return;
+  const rec = recommendProducts(buildFunnelSignals());
+  host.innerHTML='';
+  if(!rec.primary){
+    host.innerHTML='<div class="empty-state">Pilih waris &amp; isi aset untuk lihat cadangan.</div>';
+    return;
+  }
+  host.appendChild(primaryCard(rec.ranked[0]));
+  const rest = rec.ranked.slice(1);
+  if(full){
+    rest.slice(0,2).forEach(r=>host.appendChild(secondaryCard(r)));
+    const more = rest.slice(2);
+    if(more.length){
+      const det=document.createElement('details'); det.className='funnel-more';
+      const sum=document.createElement('summary'); sum.textContent='Lihat semua cadangan';
+      det.appendChild(sum);
+      more.forEach(r=>det.appendChild(secondaryCard(r)));
+      host.appendChild(det);
+    }
+  } else if(rest.length){
+    const b=document.createElement('button'); b.className='funnel-banner';
+    b.textContent=`+ ${rest.length} cadangan lain di Dashboard →`;
+    b.onclick=()=>showView('dashboard');
+    host.appendChild(b);
+  }
+}
+function renderFunnel(){ renderFunnelInto('funnel', true); }
+
+function primaryCard(entry){
+  const p = FUNNEL.products[entry.product];
+  const top = entry.triggers[0];
+  const card=document.createElement('div'); card.className='funnel-primary';
+  card.style.borderLeftColor=p.accent;
+  const critical = entry.severity>=3;
+  const chip = entry.product==='al_wasitah' ? 'Disyorkan Untuk Semua' : (SEV_CHIP[entry.severity]||'Cadangan');
+  card.innerHTML=
+    `<span class="funnel-chip${critical?' crit':''}">${critical?'⚠ ':''}${chip}</span>
+     <div class="funnel-head">
+       <span class="ic">${p.icon}</span>
+       <div><div class="nm">${p.name}</div><div class="br">${p.brand}</div></div>
+     </div>
+     <div class="funnel-reason">${FUNNEL_COPY[top.code](top.data)}</div>`;
+  const cta=document.createElement('div'); cta.className='funnel-cta';
+  const get=document.createElement('a'); get.className='btn primary';
+  get.textContent='Dapatkan Sebut Harga'; get.href=ctaHref(entry.product);
+  get.target='_blank'; get.rel='noopener';
+  const learn=document.createElement('button'); learn.className='btn ghost';
+  learn.textContent='Pelajari →'; learn.onclick=()=>openFunnelModal(entry.product);
+  cta.append(get,learn);
+  card.appendChild(cta);
+  return card;
+}
+function secondaryCard(entry){
+  const p = FUNNEL.products[entry.product];
+  const b=document.createElement('button'); b.className='funnel-sec';
+  b.innerHTML=
+    `<span class="ic">${p.icon}</span>
+     <span class="tx"><span class="nm">${p.name} · ${p.brand}</span><span class="ds">${p.tagline}</span></span>
+     <span class="ar">→</span>`;
+  b.onclick=()=>openFunnelModal(entry.product);
+  return b;
+}
+
+/* ---- product detail modal ---- */
+const funnelModal=document.getElementById('funnelModal');
+function openFunnelModal(productKey){
+  const p = FUNNEL.products[productKey]; if(!p) return;
+  const rec = recommendProducts(buildFunnelSignals());
+  const entry = rec.ranked.find(r=>r.product===productKey);
+  document.getElementById('fmIcon').textContent=p.icon;
+  document.getElementById('fmName').textContent=p.name;
+  document.getElementById('fmBrand').textContent=p.brand;
+  document.getElementById('fmTagline').textContent=p.tagline;
+  const rs=document.getElementById('fmReasons'); rs.innerHTML='';
+  const trigs = entry ? entry.triggers : [];
+  if(!trigs.length){ const d=document.createElement('div'); d.className='note'; d.textContent='Cadangan umum perancangan harta.'; rs.appendChild(d); }
+  trigs.forEach(tr=>{ const d=document.createElement('div'); d.className='note'; d.textContent=FUNNEL_COPY[tr.code](tr.data); rs.appendChild(d); });
+  const bl=document.getElementById('fmBenefits'); bl.innerHTML='';
+  (p.benefits||[]).forEach(t=>{ const li=document.createElement('li'); li.textContent=t; bl.appendChild(li); });
+  document.getElementById('fmSyariah').textContent=p.syariah||'';
+  document.getElementById('fmConfigWarn').style.display=(FUNNEL.leadMode==='whatsapp' && !waConfigured() && !p.url)?'block':'none';
+  const cta=document.getElementById('fmCta');
+  cta.href=ctaHref(productKey); cta.target='_blank'; cta.rel='noopener';
+  funnelModal.classList.add('open');
+}
+function closeFunnelModal(){ funnelModal.classList.remove('open'); }
+document.getElementById('fmClose').onclick=closeFunnelModal;
+funnelModal.addEventListener('click',e=>{ if(e.target===funnelModal) closeFunnelModal(); });
+
+/* ---- slim contextual nudge on the faraid result panel ---- */
+function renderFaraidNudge(){
+  const el=document.getElementById('faraidNudge'); if(!el) return;
+  const s=buildFunnelSignals();
+  let msg='';
+  if(s.baitulmalPct>0)
+    msg=`💡 ${s.baitulmalPct.toFixed(1)}% harta berisiko keluar kepada Baitulmal. Lihat cadangan perancangan harta →`;
+  else if(s.hasSpouse && !s.hasDescendant)
+    msg='💡 Tanpa anak, pasangan tidak mewarisi keseluruhan harta. Lihat cadangan →';
+  else if(s.hasDaughter && !s.hasMaleDescendant)
+    msg='💡 Tanpa anak lelaki, sebahagian harta keluar daripada keluarga teras. Lihat cadangan →';
+  if(!msg){ el.innerHTML=''; el.style.display='none'; return; }
+  el.style.display='block'; el.innerHTML='';
+  const b=document.createElement('button'); b.className='funnel-banner'; b.textContent=msg;
+  b.onclick=()=>showView('dashboard');
+  el.appendChild(b);
+}
 
 /* ============================================================
    ADD ASSET modal
@@ -843,12 +1340,16 @@ function showView(name){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
   window.scrollTo(0,0);
+  if(name==='dashboard') renderDashboard();
   if(name==='faraid') renderFaraid();
   if(name==='assets') renderAssets();
-  history.replaceState(null,'',name==='assets'?'#assets':'#faraid');
+  history.replaceState(null,'','#'+name);
 }
+document.getElementById('goFaraid').onclick=()=>showView('faraid');
+document.getElementById('goAssets').onclick=()=>showView('assets');
+document.getElementById('backDashFaraid').onclick=()=>showView('dashboard');
+document.getElementById('backDashAssets').onclick=()=>showView('dashboard');
 document.getElementById('toAssets').onclick=()=>showView('assets');
-document.getElementById('backFaraid').onclick=()=>showView('faraid');
 document.getElementById('addAssetBtn').onclick=openModal;
 document.getElementById('resetBtn').onclick=()=>{
   if(confirm('Set semula pilihan waris?')){ state.sel={}; save(); renderFaraid(); }
@@ -860,7 +1361,8 @@ renderFaraid();
 window.addEventListener('load',()=>{
   setTimeout(()=>{
     const sp=document.getElementById('splash'); sp.classList.add('hide');
-    const start=(location.hash==='#assets')?'assets':'faraid';
+    const h=location.hash.replace('#','');
+    const start=(h==='assets'||h==='faraid')?h:'dashboard';
     showView(start);
     setTimeout(()=>sp.remove(),450);
   },650);
