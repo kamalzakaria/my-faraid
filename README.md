@@ -8,10 +8,14 @@ a Malaysian Islamic inheritance (Faraid) calculator + asset inventory.
 - State persists in the browser via `localStorage` (the web analogue of the app's Hive box).
 - A **Cadangan Perancangan Harta** funnel recommends complementary Islamic estate-planning
   products (Takaful Hibah, Hibah Amanah, Wasiat) based on the faraid result and asset/debt picture.
+- A **Bil Bulanan** tracker: a per-month bill checklist (loans auto-appear from their monthly
+  installment) where ticking a loan as paid reduces its real balance and updates the divisible estate.
 
 ## UX flow
-`Splash → Dashboard (net estate, quick nav, distribution summary, planning recommendations)
-→ Faraid (pick heirs, see shares + pie) → Aset (list assets + debts, net total, RM distribution)`.
+`Splash → Dashboard (net estate + financial-health bar, insight chips, distribution donut, bills
+summary, planning recommendations) → Faraid (pick heirs, see shares + pie) → Aset (list assets +
+debts, net total, RM distribution) → Bil Bulanan (monthly bill checklist)`. Navigation is contextual —
+the assets/faraid/bills actions live in the relevant dashboard section headers.
 
 The Aset view has two inventories: **Aset** (assets, optionally with a secured loan attached,
 e.g. a mortgaged property) and **Hutang & Liabiliti** (standalone debts not tied to an asset —

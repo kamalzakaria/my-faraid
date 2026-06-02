@@ -3,8 +3,23 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="description" content="Kalkulator Faraid & senarai aset mengikut amalan Malaysia (mazhab Syafi'i)." />
+<meta name="description" content="Kalkulator Faraid & senarai aset mengikut amalan Malaysia (mazhab Syafi'i), termasuk cadangan perancangan harta." />
+<meta name="theme-color" content="#5b3a9e" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Kalkulator Faraid" />
 <title>Kalkulator Faraid</title>
+<!-- Inline SVG favicon (keeps the single-file, no-asset approach) -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Crect%20width='100'%20height='100'%20rx='22'%20fill='%235b3a9e'/%3E%3Ctext%20x='50'%20y='54'%20font-size='62'%20text-anchor='middle'%20dominant-baseline='central'%3E%E2%98%AA%3C/text%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Crect%20width='100'%20height='100'%20fill='%235b3a9e'/%3E%3Ctext%20x='50'%20y='54'%20font-size='62'%20text-anchor='middle'%20dominant-baseline='central'%3E%E2%98%AA%3C/text%3E%3C/svg%3E" />
+<!-- Open Graph / Twitter (WhatsApp is the main share channel) -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Kalkulator Faraid — kira pusaka & rancang harta" />
+<meta property="og:description" content="Kira bahagian faraid (mazhab Syafi'i), senaraikan aset & hutang, dan dapatkan cadangan perancangan harta yang diperibadikan." />
+<meta property="og:locale" content="ms_MY" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Kalkulator Faraid — kira pusaka & rancang harta" />
+<meta name="twitter:description" content="Kira bahagian faraid (mazhab Syafi'i), senaraikan aset & hutang, dapatkan cadangan perancangan harta." />
 <style>
   :root{
     --primary:#5b3a9e; --primary-dark:#432a78; --primary-soft:#ece5fb;
@@ -38,7 +53,7 @@
   .heir:hover{border-color:var(--primary)}
   .heir .lbl{flex:1;display:flex;align-items:center;justify-content:center;font-size:.82rem;line-height:1.2}
   .heir.sel{background:var(--selected);border-color:var(--selected);color:#fff}
-  .heir.blocked{background:var(--blocked);border-color:var(--blocked);color:#7a7a85}
+  .heir.blocked{background:var(--blocked);border-color:var(--blocked);color:#43424b}
   .heir .mahjub{height:13px;line-height:1;font-size:.66rem;font-style:italic;opacity:0}
   .heir.blocked .mahjub{opacity:.9}
   .stepper{height:26px;display:flex;align-items:center;justify-content:center;gap:4px}
@@ -104,7 +119,8 @@
   .err{color:#c62828;font-size:.74rem;margin-top:4px;min-height:1em}
 
   .typegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
-  .typecard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 8px;text-align:center;cursor:pointer;font-size:.8rem}
+  .typecard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 8px;text-align:center;
+    cursor:pointer;font-size:.8rem;font-family:inherit;color:inherit;width:100%}
   .typecard:hover{border-color:var(--primary);background:var(--primary-soft)}
 
   .disclaimer{font-size:.74rem;color:var(--muted);border-top:1px solid var(--line);margin-top:24px;padding-top:14px;line-height:1.5}
@@ -123,6 +139,21 @@
   .hero .lbl{font-size:.85rem;opacity:.85}
   .hero .amt{font-size:2rem;font-weight:700;margin-top:4px;line-height:1.1}
   .hero .sub{font-size:.78rem;opacity:.82;margin-top:8px}
+  /* financial-health bar inside the hero */
+  .health{margin-top:14px}
+  .health-bar{display:flex;height:8px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,.2)}
+  .health-bar .seg{height:100%}
+  .health-bar .seg.net{background:#aed581}
+  .health-bar .seg.debt{background:#ef9a9a}
+  .health-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-top:9px;font-size:.74rem}
+  .health-verdict{font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.18)}
+  .health-verdict.good{background:rgba(174,213,129,.32)}
+  .health-verdict.mid{background:rgba(255,213,79,.32)}
+  .health-verdict.bad{background:rgba(239,154,154,.38)}
+  .health-key{opacity:.92;display:flex;align-items:center;gap:8px}
+  .health-key .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:3px;vertical-align:middle}
+  .health-key .dot.net{background:#aed581}
+  .health-key .dot.debt{background:#ef9a9a}
   .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
   .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 8px;text-align:center}
   .stat .num{font-size:1.6rem;font-weight:700;color:var(--primary-dark);line-height:1}
@@ -149,25 +180,130 @@
   .funnel-head .ic{font-size:1.7rem;line-height:1;flex:0 0 auto}
   .funnel-head .nm{font-weight:700;font-size:1.02rem;line-height:1.2}
   .funnel-head .br{font-size:.74rem;color:var(--muted)}
-  .funnel-reason{font-size:.86rem;line-height:1.5;color:var(--ink);margin:10px 0 12px}
+  .funnel-overview{font-size:.8rem;line-height:1.5;color:var(--muted);margin:8px 0 0}
+  .funnel-reason{font-size:.86rem;line-height:1.5;color:var(--ink);margin:10px 0 10px;
+    background:var(--primary-soft);border-radius:8px;padding:9px 11px}
+  .funnel-reason .rh{display:block;font-size:.68rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--primary-dark);opacity:.8;margin-bottom:3px}
+  .funnel-bullets{list-style:none;margin:0 0 14px;padding:0}
+  .funnel-bullets li{font-size:.8rem;color:var(--ink);line-height:1.45;padding-left:20px;position:relative;margin-top:5px}
+  .funnel-bullets li::before{content:"✓";position:absolute;left:0;color:var(--ok);font-weight:700}
   .funnel-cta{display:flex;gap:8px;flex-wrap:wrap}
   .funnel-cta .btn{text-decoration:none;text-align:center}
-  .funnel-sec{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);
-    border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;width:100%;text-align:left;font:inherit;color:inherit;transition:.12s}
-  .funnel-sec:hover{border-color:var(--primary)}
-  .funnel-sec .ic{font-size:1.3rem;flex:0 0 auto}
+  .funnel-sec{display:flex;align-items:flex-start;gap:11px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:13px;margin-bottom:8px;cursor:pointer;width:100%;text-align:left;font:inherit;color:inherit;transition:.12s}
+  .funnel-sec:hover{border-color:var(--primary);box-shadow:0 2px 8px rgba(91,58,158,.08)}
+  .funnel-sec .ic{font-size:1.4rem;line-height:1.2;flex:0 0 auto}
   .funnel-sec .tx{flex:1;min-width:0}
-  .funnel-sec .nm{font-weight:600;font-size:.9rem}
-  .funnel-sec .ds{font-size:.76rem;color:var(--muted)}
-  .funnel-sec .ar{color:var(--primary);font-weight:700;flex:0 0 auto}
+  .funnel-sec .nm{display:block;font-weight:600;font-size:.92rem;line-height:1.25}
+  .funnel-sec .br{display:block;font-size:.72rem;color:var(--muted);margin-bottom:4px}
+  .funnel-sec .ds{display:block;font-size:.78rem;color:var(--ink);line-height:1.45}
+  .funnel-sec .lk{display:block;font-size:.74rem;color:var(--primary);font-weight:600;margin-top:6px}
+  .funnel-sec .ar{color:var(--primary);font-weight:700;flex:0 0 auto;align-self:center}
   .funnel-more{margin-top:6px}
   .funnel-more summary{font-size:.82rem}
   .funnel-banner{width:100%;text-align:left;font:inherit;cursor:pointer;background:var(--primary-soft);
     color:var(--primary-dark);border:0;border-radius:10px;padding:10px 12px;font-size:.82rem;margin-top:12px;line-height:1.4}
   .funnel-banner:hover{background:#e3d8fb}
+  .fm-overview{font-size:.85rem;line-height:1.55;color:var(--ink);margin:0 0 14px}
+  .fm-sec-title{font-weight:600;font-size:.85rem;margin:14px 0 6px}
   .fm-reasons .note{margin-top:6px}
   .fm-syariah{background:#eef7ee;color:#2e7d32;font-size:.78rem;border-radius:8px;padding:8px 10px;margin-top:12px;line-height:1.5}
   .funnel-config{font-size:.74rem;color:#c62828;margin-top:8px}
+  .funnel-priv{font-size:.72rem;color:var(--muted);margin-top:10px;display:flex;gap:5px;align-items:flex-start}
+  .funnel-hint{background:#f3eefb;color:var(--primary-dark);border-radius:10px;padding:9px 11px;font-size:.78rem;margin-bottom:12px;line-height:1.4}
+
+  /* ---- Accessibility: visible focus ---- */
+  :focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .appbar :focus-visible,.hero :focus-visible{outline-color:#fff}
+  .heir-tap:focus-visible{outline-offset:-2px;border-radius:8px}
+
+  /* ---- Heir card: tappable region is a real <button>, stepper is a sibling ---- */
+  .heir-tap{flex:1;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    background:transparent;border:0;color:inherit;font:inherit;cursor:pointer;padding:0}
+  .heir-group-title{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;
+    margin:18px 0 8px}
+  .heir-group-title:first-child{margin-top:4px}
+
+  /* ---- Modal close button + a11y ---- */
+  .modal{position:relative}
+  .modal-close{position:absolute;top:8px;right:10px;background:none;border:0;font-size:1.5rem;line-height:1;
+    color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:8px}
+  .modal-close:hover{color:var(--ink);background:#f3f1f8}
+
+  /* ---- Seeded (example) data banner ---- */
+  .seed-banner{display:flex;gap:10px;align-items:center;justify-content:space-between;
+    background:#fff8e1;border:1px solid #ffe082;color:#7a5d00;border-radius:10px;padding:10px 12px;
+    font-size:.8rem;line-height:1.4;margin-bottom:14px}
+  .seed-banner button{flex:0 0 auto;background:#fff;border:1px solid #e0c862;color:#7a5d00;
+    border-radius:8px;padding:6px 12px;font-size:.78rem;font-weight:600;cursor:pointer}
+  .seed-banner button:hover{background:#fffaf0}
+
+  /* ---- Sticky result column on desktop ---- */
+  @media(min-width:880px){ .result-col{position:sticky;top:76px;align-self:start} }
+
+  /* ---- Dashboard: insight chips (replace vanity counts) ---- */
+  .insight-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;padding:7px 12px;border-radius:20px;line-height:1.25}
+  .chip.crit{background:#fdecec;color:#c62828}
+  .chip.warn{background:#fff4e0;color:#8a5a00}
+  .chip.ok{background:#eaf6ea;color:#2e7d32}
+  .chip.info{background:var(--primary-soft);color:var(--primary-dark)}
+
+  /* ---- Dashboard: distribution donut + legend ---- */
+  .dash-dist-wrap{display:flex;flex-direction:column;align-items:center;gap:16px}
+  @media(min-width:560px){ .dash-dist-wrap{flex-direction:row;align-items:center} .dash-dist-wrap .legend{flex:1} }
+  .pie.dash{width:150px;height:150px;flex:0 0 auto}
+  .pie.dash:not(.empty){-webkit-mask:radial-gradient(circle 44px at 50% 50%,#0000 98%,#000 100%);
+    mask:radial-gradient(circle 44px at 50% 50%,#0000 98%,#000 100%)}
+
+  /* ---- Dashboard: contextual nav (action lives in each section header) ---- */
+  .hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .hero-top .lbl{margin-top:2px}
+  .hero-action{flex:0 0 auto;background:rgba(255,255,255,.18);color:#fff;border:0;border-radius:8px;
+    padding:7px 12px;font:inherit;font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap}
+  .hero-action:hover{background:rgba(255,255,255,.3)}
+
+  /* ---- Optional per-category asset/loan fields ---- */
+  .opt{font-size:.62rem;font-weight:700;color:var(--ok);background:#eaf6ea;padding:1px 6px;border-radius:10px;
+    margin-left:6px;text-transform:none;letter-spacing:0}
+  .extra-details{margin-top:14px;border-top:1px dashed var(--line);padding-top:6px}
+  .extra-details summary{font-weight:600;color:var(--primary-dark);font-size:.84rem;padding:4px 0}
+  .asset .meta .asset-extra{font-size:.72rem;color:var(--muted);margin-top:3px;line-height:1.35}
+
+  /* ---- Standardized asset/loan row: category is an eyebrow label, so all titles align ---- */
+  .asset .meta .cat{font-size:.64rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--primary)}
+  .asset.debt .meta .cat{color:#c62828}
+  .asset .meta .nm{margin-top:1px}
+
+  /* ---- Sort controls in section headers ---- */
+  .section-title.with-add{flex-wrap:wrap;row-gap:8px}
+  .section-actions{display:flex;gap:8px;align-items:center}
+  .sortsel{font:inherit;font-size:.76rem;padding:6px 8px;border:1px solid var(--line);border-radius:8px;
+    background:#fff;color:var(--ink);cursor:pointer}
+
+  /* ---- Monthly bills tracker ---- */
+  .month-switch{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:14px}
+  .month-switch .icon{background:var(--card);border:1px solid var(--line);color:var(--primary-dark);
+    width:40px;height:40px;border-radius:10px;font-size:1.4rem;cursor:pointer;line-height:1;padding:0}
+  .month-switch .icon:hover{border-color:var(--primary)}
+  .month-label{font-weight:700;font-size:1rem;min-width:140px;text-align:center}
+  .bill{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:12px;margin-bottom:8px}
+  .bill.paid{background:#f4faf4;border-color:#cfe8cf}
+  .bill .chk{width:26px;height:26px;flex:0 0 auto;border:2px solid var(--line);border-radius:7px;cursor:pointer;
+    background:#fff;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;padding:0}
+  .bill.paid .chk{background:var(--ok);border-color:var(--ok)}
+  .bill .meta{flex:1;min-width:0}
+  .bill .meta .cat{font-size:.64rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--primary)}
+  .bill .meta .nm{font-weight:600}
+  .bill.paid .meta .nm{text-decoration:line-through;opacity:.7}
+  .bill .meta .bal{font-size:.72rem;color:var(--muted);margin-top:2px}
+  .bill .amtin{width:96px;text-align:right;padding:8px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:.86rem;flex:0 0 auto}
+  .bill .amtin:disabled{background:#eef3ee;color:var(--ink);opacity:1}
+  .bill .del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1rem;flex:0 0 auto}
+  .dash-bills-row{display:flex;justify-content:space-between;font-size:.86rem;padding:4px 0}
+  .dash-bills-row .muted{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -183,42 +319,36 @@
     <h1>☪ Kalkulator Faraid</h1>
   </header>
   <main>
+    <div id="seedBannerDash"></div>
     <div class="hero">
-      <div class="lbl">Jumlah Harta Boleh Dibahagi</div>
+      <div class="hero-top">
+        <div class="lbl">Jumlah Harta Boleh Dibahagi</div>
+        <button class="hero-action" id="goAssets">📋 Senarai Aset →</button>
+      </div>
       <div class="amt" id="dashNet">RM 0.00</div>
       <div class="sub" id="dashNetSub"></div>
+      <div class="health" id="dashHealth" style="display:none"></div>
     </div>
 
-    <div class="stats">
-      <div class="stat"><div class="num" id="statHeirs">0</div><div class="cap">Waris Dipilih</div></div>
-      <div class="stat"><div class="num" id="statAssets">0</div><div class="cap">Aset</div></div>
-      <div class="stat"><div class="num" id="statDebts">0</div><div class="cap">Hutang</div></div>
-    </div>
+    <div id="dashInsight" class="insight-row"></div>
 
-    <div class="section-title">Menu</div>
-    <div class="nav-tiles">
-      <button class="tile" id="goFaraid">
-        <span class="ic">🧮</span>
-        <span class="tx">
-          <span class="nm">Kalkulator Faraid</span>
-          <span class="ds">Pilih waris &amp; kira bahagian pusaka</span>
-        </span>
-        <span class="ar">→</span>
-      </button>
-      <button class="tile" id="goAssets">
-        <span class="ic">📋</span>
-        <span class="tx">
-          <span class="nm">Senarai Aset</span>
-          <span class="ds">Rekod aset, hutang &amp; lihat agihan RM</span>
-        </span>
-        <span class="ar">→</span>
-      </button>
+    <div class="section-title with-add">
+      <span>Agihan Pusaka</span>
+      <button class="btn ghost sm" id="goFaraid">🧮 Kira Faraid →</button>
     </div>
-
-    <div class="section-title" style="margin-top:22px">Ringkasan Agihan</div>
     <div class="panel">
-      <div id="dashDist" class="legend"></div>
+      <div class="dash-dist-wrap">
+        <div id="dashPie" class="pie dash empty">Belum ada waris</div>
+        <div id="dashDist" class="legend"></div>
+      </div>
+      <div id="dashBase" class="basebar" style="display:none"></div>
     </div>
+
+    <div class="section-title with-add" style="margin-top:22px">
+      <span>Bil Bulanan</span>
+      <button class="btn ghost sm" id="goBills">Urus Bil →</button>
+    </div>
+    <div class="panel" id="dashBills"></div>
 
     <div class="section-title" style="margin-top:22px">Cadangan Perancangan Harta</div>
     <p class="funnel-intro">Faraid adalah <em>fardhu</em>. Produk berikut ialah <strong>pelengkap</strong> (bukan ganti)
@@ -246,12 +376,12 @@
       <div>
         <div class="section-title">Pilih Waris (Ahli Waris)</div>
         <p class="hint">Ketik untuk pilih. Bagi waris berbilang, laras bilangan dengan butang −/+. Waris kelabu (<em>mahjub</em>) terhalang oleh waris lain.</p>
-        <div id="heirGrid" class="grid"></div>
+        <div id="heirGrid"></div>
         <div class="toolbar">
           <button class="btn ghost" id="resetBtn">Set Semula</button>
         </div>
       </div>
-      <div>
+      <div class="result-col">
         <div class="section-title">Bahagian Faraid</div>
         <div class="panel">
           <div class="pie-wrap">
@@ -286,6 +416,7 @@
     <h1>Senarai Aset</h1>
   </header>
   <main>
+    <div id="seedBannerAssets"></div>
     <div class="total">
       <div>
         <div>Jumlah Aset Boleh Dibahagi</div>
@@ -296,13 +427,27 @@
 
     <div class="section-title with-add">
       <span>Aset</span>
-      <button class="btn ghost sm" id="addAssetBtn">+ Tambah Aset</button>
+      <span class="section-actions">
+        <select class="sortsel" id="assetSort" aria-label="Susun aset">
+          <option value="none">Susun: Asal</option>
+          <option value="category">Kategori</option>
+          <option value="value">Nilai ↓</option>
+        </select>
+        <button class="btn ghost sm" id="addAssetBtn">+ Tambah Aset</button>
+      </span>
     </div>
     <div id="assetList"></div>
 
     <div class="section-title with-add" style="margin-top:22px">
       <span>Hutang &amp; Liabiliti</span>
-      <button class="btn ghost sm" id="addLoanBtn">+ Tambah Hutang</button>
+      <span class="section-actions">
+        <select class="sortsel" id="loanSort" aria-label="Susun hutang">
+          <option value="none">Susun: Asal</option>
+          <option value="name">Nama</option>
+          <option value="value">Nilai ↓</option>
+        </select>
+        <button class="btn ghost sm" id="addLoanBtn">+ Tambah Hutang</button>
+      </span>
     </div>
     <p class="hint">Hutang peribadi, kad kredit, atau perbelanjaan pengebumian yang diselesaikan sebelum pembahagian.
       Hutang bercagar (cth. pinjaman rumah/kereta) dimasukkan terus pada aset berkenaan.</p>
@@ -315,12 +460,73 @@
 
     <div class="section-title" style="margin-top:22px">Cadangan Perancangan Harta</div>
     <div id="assetsFunnel"></div>
+
+    <p class="disclaimer">
+      Pengiraan mengikut <strong>mazhab Syafi'i (amalan Malaysia)</strong>, termasuk <em>radd</em>.
+      Alat ini untuk <strong>anggaran &amp; pendidikan</strong>, <strong>bukan nasihat kewangan/syariah
+      muktamad</strong> — rujuk perunding bertauliah. Untuk pembahagian rasmi sila rujuk
+      Mahkamah Syariah / Amanah Raya / pakar faraid bertauliah.
+    </p>
   </main>
 </section>
 
+<!-- ============ BILLS VIEW ============ -->
+<section id="view-bills" class="view">
+  <header class="appbar">
+    <button class="icon" id="backDashBills" title="Kembali">←</button>
+    <h1>Bil Bulanan</h1>
+  </header>
+  <main>
+    <div class="month-switch">
+      <button class="icon" id="billPrev" aria-label="Bulan sebelum">‹</button>
+      <div class="month-label" id="billMonthLabel">—</div>
+      <button class="icon" id="billNext" aria-label="Bulan seterusnya">›</button>
+    </div>
+
+    <div class="total">
+      <div>
+        <div>Dibayar bulan ini</div>
+        <small id="billNote" class="hint" style="margin:0"></small>
+      </div>
+      <div class="big" id="billPaidTotal">RM 0</div>
+    </div>
+
+    <div class="section-title with-add">
+      <span>Senarai Bil</span>
+      <button class="btn ghost sm" id="addBillBtn">+ Tambah Bil</button>
+    </div>
+    <p class="hint">Bil pinjaman (yang ada “ansuran bulanan”) muncul automatik. Menanda bil pinjaman sebagai dibayar akan
+      <strong>mengurangkan baki sebenar</strong> &amp; mengemaskini harta boleh dibahagi. Tanda semula untuk batalkan.</p>
+    <div id="billList"></div>
+
+    <p class="disclaimer">Penjejakan untuk rekod peribadi anda; disimpan mengikut bulan dalam pelayar ini.
+      Hanya bil pinjaman yang dipautkan menjejaskan baki &amp; harta pusaka.</p>
+  </main>
+</section>
+
+<!-- ============ ADD BILL MODAL ============ -->
+<div id="billModal" class="modal-bg">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Tambah bil">
+    <button class="modal-close" id="closeBillX" aria-label="Tutup">×</button>
+    <h3>Tambah Bil Bulanan</h3>
+    <label>Nama bil</label>
+    <input type="text" id="bLabel" autocomplete="off" placeholder="cth. Bil air, yuran tadika, gym" />
+    <label>Jumlah lazim sebulan (RM)</label>
+    <input type="text" id="bAmount" inputmode="numeric" autocomplete="off" />
+    <label>Kategori <span class="opt">pilihan</span></label>
+    <input type="text" id="bCategory" autocomplete="off" placeholder="cth. Utiliti, Langganan" />
+    <div class="err" id="billErr"></div>
+    <div class="actions">
+      <button class="btn ghost" id="cancelBill">Batal</button>
+      <button class="btn primary" id="saveBill" style="flex:1">Simpan</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ ADD ASSET MODAL ============ -->
 <div id="modal" class="modal-bg">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Tambah aset">
+    <button class="modal-close" id="closeAssetX" aria-label="Tutup">×</button>
     <div id="modalStep1">
       <h3>Pilih Jenis Aset</h3>
       <div id="typeGrid" class="typegrid"></div>
@@ -339,6 +545,8 @@
         <div id="loanDetail" style="display:none">
           <label>Baki pinjaman / hutang semasa (RM)</label>
           <input type="text" id="fLoan" inputmode="numeric" autocomplete="off" />
+          <label>Ansuran bulanan (RM) <span class="opt">pilihan</span></label>
+          <input type="text" id="fMonthly" inputmode="numeric" autocomplete="off" />
           <div class="toggle-row">
             <div>Perlindungan insurans / takaful?
               <small>Jika dilindungi, hutang diselesaikan oleh insurans dan TIDAK ditolak. Jika tidak, baki hutang ditolak daripada harta.</small>
@@ -347,9 +555,13 @@
           </div>
         </div>
       </div>
+      <details class="extra-details" id="assetExtraWrap">
+        <summary>Maklumat tambahan (pilihan)</summary>
+        <div id="assetExtra"></div>
+      </details>
       <div class="err" id="formErr"></div>
       <div class="actions">
-        <button class="btn ghost" id="cancelAsset">Batal</button>
+        <button class="btn ghost" id="cancelAsset">← Kembali</button>
         <button class="btn primary" id="saveAsset" style="flex:1">Simpan</button>
       </div>
     </div>
@@ -358,7 +570,8 @@
 
 <!-- ============ ADD LOAN MODAL ============ -->
 <div id="loanModal" class="modal-bg">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Tambah hutang">
+    <button class="modal-close" id="closeLoanX" aria-label="Tutup">×</button>
     <h3>Tambah Hutang</h3>
     <label>Jenis / nama hutang</label>
     <input type="text" id="lLabel" autocomplete="off" placeholder="cth. Pinjaman peribadi, kad kredit" />
@@ -370,6 +583,13 @@
       </div>
       <div class="switch" id="swLoanInsured"></div>
     </div>
+    <details class="extra-details">
+      <summary>Maklumat tambahan (pilihan)</summary>
+      <label>Ansuran bulanan (RM)</label>
+      <input type="text" id="lMonthly" inputmode="numeric" autocomplete="off" />
+      <label>Pemberi pinjaman</label>
+      <input type="text" id="lLender" autocomplete="off" />
+    </details>
     <div class="err" id="loanErr"></div>
     <div class="actions">
       <button class="btn ghost" id="cancelLoan">Batal</button>
@@ -380,18 +600,22 @@
 
 <!-- ============ PRODUCT DETAIL MODAL (funnel) ============ -->
 <div id="funnelModal" class="modal-bg">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="fmName">
+    <button class="modal-close" id="fmCloseX" aria-label="Tutup">×</button>
     <div class="funnel-head">
       <span class="ic" id="fmIcon"></span>
       <div><div class="nm" id="fmName"></div><div class="br" id="fmBrand"></div></div>
     </div>
-    <p class="funnel-intro" id="fmTagline" style="margin:8px 0 14px"></p>
-    <div class="section-title" style="font-size:.85rem;margin:0 0 6px">Mengapa relevan untuk anda</div>
+    <p class="fm-overview" id="fmOverview"></p>
+    <div class="fm-sec-title">Kenapa ini relevan untuk anda</div>
     <div id="fmReasons" class="fm-reasons"></div>
-    <div class="section-title" style="font-size:.85rem;margin:14px 0 4px">Manfaat utama</div>
+    <div class="fm-sec-title">Apa erti untuk waris anda</div>
+    <p class="note" id="fmWhy" style="margin-top:0"></p>
+    <div class="fm-sec-title">Manfaat utama</div>
     <ul id="fmBenefits" style="font-size:.84rem;line-height:1.55;padding-left:18px;margin:4px 0;color:var(--ink)"></ul>
     <div class="fm-syariah" id="fmSyariah"></div>
     <div class="funnel-config" id="fmConfigWarn" style="display:none">⚠ Nombor WhatsApp ejen belum ditetapkan dalam konfigurasi (FUNNEL.whatsapp).</div>
+    <div class="funnel-priv"><span>🔒</span><span>Butang di bawah membuka WhatsApp dengan ringkasan situasi anda — ia hanya dihantar selepas anda menekan hantar di WhatsApp.</span></div>
     <div class="actions">
       <button class="btn ghost" id="fmClose">Tutup</button>
       <a class="btn primary" id="fmCta" style="flex:1" target="_blank" rel="noopener">Dapatkan Sebut Harga</a>
@@ -724,14 +948,22 @@ function rank(triggers){
    STATE + persistence (localStorage ~ Hive box 'faraid')
    ============================================================ */
 const STORE_KEY='faraid_web_state';
-let state={sel:{}, assets:[], loans:[]};
+let state={sel:{}, assets:[], loans:[], bills:[], billLog:{}};
+
+function uid(){ return 'x'+Math.random().toString(36).slice(2,9); }
+// Every asset/loan/bill needs a stable id so monthly bills can link to them across reorders/deletes.
+function ensureIds(){
+  (state.assets||[]).forEach(a=>{ if(!a.id) a.id=uid(); });
+  (state.loans||[]).forEach(l=>{ if(!l.id) l.id=uid(); });
+  (state.bills||[]).forEach(b=>{ if(!b.id) b.id=uid(); });
+}
 
 /* First-run sample: a typical Malaysian (B40) estate, so a new user sees
    realistic example data instead of an empty list. Replaced as soon as the
    user edits their own data (their first save overwrites this). */
 const DEFAULT_ASSETS=[
-  {type:'property',label:'Rumah PPR / Teres',     amount:180000,isLoan:true, isInsured:true, loanAmount:120000}, // pinjaman dilindungi MRTT
-  {type:'vehicle', label:'Kereta (Perodua Axia)', amount:25000, isLoan:true, isInsured:false,loanAmount:15000},  // sewa beli
+  {type:'property',label:'Rumah PPR / Teres',     amount:180000,isLoan:true, isInsured:true, loanAmount:120000, extra:{monthly:850}}, // pinjaman dilindungi MRTT
+  {type:'vehicle', label:'Kereta (Perodua Axia)', amount:25000, isLoan:true, isInsured:false,loanAmount:15000, extra:{monthly:380}},  // sewa beli
   {type:'vehicle', label:'Motosikal',             amount:4000,  isLoan:false,isInsured:false,loanAmount:0},
   {type:'kwsp',    label:'Simpanan KWSP',         amount:30000, isLoan:false,isInsured:false,loanAmount:0},
   {type:'asb',     label:'ASB / ASNB',            amount:5000,  isLoan:false,isInsured:false,loanAmount:0},
@@ -739,24 +971,38 @@ const DEFAULT_ASSETS=[
   {type:'th',      label:'Tabung Haji',           amount:2000,  isLoan:false,isInsured:false,loanAmount:0},
 ];
 const DEFAULT_LOANS=[
-  {label:'Pinjaman PTPTN',    amount:8000, isInsured:false},
-  {label:'Pinjaman Peribadi', amount:5000, isInsured:false},
-  {label:'Baki Kad Kredit',   amount:1500, isInsured:false},
+  {label:'Pinjaman PTPTN',    amount:8000, isInsured:false, extra:{monthly:150}},
+  {label:'Pinjaman Peribadi', amount:5000, isInsured:false, extra:{monthly:250}},
+  {label:'Baki Kad Kredit',   amount:1500, isInsured:false, extra:{monthly:200}},
 ];
+/* Sample manual bills (stable seed ids so we can pre-mark a couple as paid for onboarding).
+   Loan/financing bills appear automatically from their "Ansuran bulanan". */
+const DEFAULT_BILLS=[
+  {id:'seed-elektrik', label:'Bil Elektrik (TNB)',           amount:120, category:'Utiliti'},
+  {id:'seed-air',      label:'Bil Air',                      amount:35,  category:'Utiliti'},
+  {id:'seed-internet', label:'Internet & Telefon',           amount:130, category:'Utiliti'},
+  {id:'seed-dapur',    label:'Barangan Dapur (bulanan)',     amount:900, category:'Keperluan'},
+  {id:'seed-langganan',label:'Langganan (Netflix/Spotify)',  amount:45,  category:'Langganan'},
+];
+let exampleData=false;            // true while showing first-run sample (until the user edits)
 function seedDefaults(){
-  state.assets=DEFAULT_ASSETS.map(a=>Object.assign({},a));
-  state.loans =DEFAULT_LOANS.map(l=>Object.assign({},l));
+  state.assets=DEFAULT_ASSETS.map(a=>Object.assign({},a,{extra:a.extra?Object.assign({},a.extra):undefined}));
+  state.loans =DEFAULT_LOANS.map(l=>Object.assign({},l,{extra:l.extra?Object.assign({},l.extra):undefined}));
+  state.bills =DEFAULT_BILLS.map(b=>Object.assign({},b));
+  // pre-mark two manual bills as paid this month so onboarding shows the tracker in use
+  // (manual bills have no loan link, so no balance is affected)
+  state.billLog={ [ymKey(new Date())]: {'m:seed-elektrik':120, 'm:seed-air':35} };
+  exampleData=true;
 }
 function load(){
   try{
     const r=localStorage.getItem(STORE_KEY);
-    if(r){ state=Object.assign(state,JSON.parse(r)); return; }
+    if(r){ state=Object.assign(state,JSON.parse(r)); if(!state.bills)state.bills=[]; if(!state.billLog)state.billLog={}; ensureIds(); return; }
   }catch(e){ return; }
-  seedDefaults(); // no stored state yet → first run
+  seedDefaults(); ensureIds(); // no stored state yet → first run
 }
-function save(){ try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){} }
-
-const RM=new Intl.NumberFormat('ms-MY',{style:'currency',currency:'MYR',minimumFractionDigits:2});
+function save(){ exampleData=false; try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){} }
+function clearExample(){ state={sel:{},assets:[],loans:[],bills:[],billLog:{}}; save(); showView('dashboard'); }
 
 /* ============================================================
    FARAID VIEW rendering
@@ -784,29 +1030,51 @@ function stepHeir(id,delta,ev){
   save(); renderFaraid();
 }
 
+/* Heirs grouped into sections for scannability (order/labels are UI-only;
+   the engine still keys off the canonical HEIRS ids). */
+const HEIR_GROUPS=[
+  {title:'Pasangan',        ids:['s','is']},
+  {title:'Anak & Cucu',     ids:['al','ap','cl','cp']},
+  {title:'Ibu Bapa',        ids:['b','i']},
+  {title:'Datuk & Nenek',   ids:['d','nsb','nsi']},
+  {title:'Adik-beradik',    ids:['ss','bk','sk','bt','st']},
+  {title:'Waris Lain',      ids:['nk','nt','uk','ut','ck','ct']},
+];
 function renderFaraid(){
   const res=solveFaraid(state.sel);
   const blocked=new Set(res.blocked);
   heirGrid.innerHTML='';
-  HEIRS.forEach(h=>{
-    const sel=state.sel[h.id]>0;
-    const div=document.createElement('div');
-    div.className='heir'+(sel?(blocked.has(h.id)?' blocked':' sel'):'');
-    div.onclick=()=>toggleHeir(h.id);
-    // Static stack: every card has label / mahjub / counter rows, so its size never changes.
-    const lbl=document.createElement('div'); lbl.className='lbl'; lbl.textContent=h.label;
-    const mj=document.createElement('div'); mj.className='mahjub'; mj.textContent='mahjub';
-    const st=document.createElement('div'); st.className='stepper';
-    if(h.multi && sel){
-      const minus=document.createElement('button'); minus.textContent='−';
-      minus.onclick=e=>stepHeir(h.id,-1,e);
-      const span=document.createElement('span'); span.textContent=state.sel[h.id];
-      const plus=document.createElement('button'); plus.textContent='+';
-      plus.onclick=e=>stepHeir(h.id,1,e);
-      st.append(minus,span,plus);
-    }
-    div.append(lbl,mj,st);
-    heirGrid.appendChild(div);
+  HEIR_GROUPS.forEach(group=>{
+    const title=document.createElement('div'); title.className='heir-group-title'; title.textContent=group.title;
+    heirGrid.appendChild(title);
+    const grid=document.createElement('div'); grid.className='grid';
+    group.ids.forEach(id=>{
+      const h=HEIRS.find(x=>x.id===id); if(!h) return;
+      const sel=state.sel[h.id]>0;
+      const cell=document.createElement('div');
+      cell.className='heir'+(sel?(blocked.has(h.id)?' blocked':' sel'):'');
+      // tappable toggle is a real <button> so keyboard + screen-reader users can select heirs
+      const tap=document.createElement('button'); tap.type='button'; tap.className='heir-tap';
+      tap.setAttribute('aria-pressed', sel?'true':'false');
+      tap.setAttribute('aria-label', (sel?'Buang ':'Pilih ')+h.label+(blocked.has(h.id)?' (mahjub — terhalang)':''));
+      tap.onclick=()=>toggleHeir(h.id);
+      const lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent=h.label;
+      const mj=document.createElement('span'); mj.className='mahjub'; mj.textContent='mahjub';
+      tap.append(lbl,mj);
+      // stepper is a SIBLING of the button (no nesting interactive controls)
+      const st=document.createElement('div'); st.className='stepper';
+      if(h.multi && sel){
+        const minus=document.createElement('button'); minus.type='button'; minus.textContent='−';
+        minus.setAttribute('aria-label','Kurangkan '+h.label); minus.onclick=e=>stepHeir(h.id,-1,e);
+        const span=document.createElement('span'); span.textContent=state.sel[h.id]; span.setAttribute('aria-hidden','true');
+        const plus=document.createElement('button'); plus.type='button'; plus.textContent='+';
+        plus.setAttribute('aria-label','Tambah '+h.label); plus.onclick=e=>stepHeir(h.id,1,e);
+        st.append(minus,span,plus);
+      }
+      cell.append(tap,st);
+      grid.appendChild(cell);
+    });
+    heirGrid.appendChild(grid);
   });
   renderResult(res);
   renderFaraidNudge();
@@ -820,7 +1088,7 @@ function renderResult(res){
   legend.innerHTML=''; notes.innerHTML='';
   const all=res.rows.slice(); if(res.baitulmal) all.push(res.baitulmal);
 
-  if(all.length===0){
+  if(res.rows.length===0){           // nothing selected yet → empty state, not "Baitulmal 100%"
     pie.className='pie empty'; pie.textContent='Belum ada waris dipilih'; pie.style.background='';
     basebar.style.display='none';
     return;
@@ -850,6 +1118,16 @@ function renderResult(res){
   basebar.innerHTML=`<span>Asal Masalah (asas)</span><span>${res.base}</span>`;
 }
 
+/* ---- Asset/loan list sorting (view-only; not persisted, doesn't touch exampleData) ---- */
+let assetSort='none', loanSort='none';
+function sortedView(list, mode){
+  const arr=(list||[]).map((item,idx)=>({item,idx}));   // keep original index so deletes stay correct
+  if(mode==='category') arr.sort((x,y)=>(ASSET_NAME[x.item.type]||x.item.type||'').localeCompare(ASSET_NAME[y.item.type]||y.item.type||'','ms') || (Number(y.item.amount)||0)-(Number(x.item.amount)||0));
+  else if(mode==='value') arr.sort((x,y)=>(Number(y.item.amount)||0)-(Number(x.item.amount)||0));
+  else if(mode==='name') arr.sort((x,y)=>String(x.item.label||'').localeCompare(String(y.item.label||''),'ms'));
+  return arr;
+}
+
 /* ============================================================
    ASSETS VIEW rendering
    Net estate = all asset values − outstanding uninsured debts.
@@ -866,30 +1144,35 @@ function debtTotal(){
 function netTotal(){ return Math.max(0, grossTotal()-debtTotal()); }
 
 function renderAssets(){
+  renderSeedBanner();
   const gross=grossTotal(), debt=debtTotal(), net=netTotal();
-  document.getElementById('assetTotal').textContent=RM.format(net);
+  document.getElementById('assetTotal').textContent=RM0.format(net);
   const note=document.getElementById('totalNote');
-  if(debt>0 && gross-debt<0) note.textContent=`Aset ${RM.format(gross)} − hutang ${RM.format(debt)} — harta tidak mencukupi untuk menyelesaikan hutang.`;
-  else if(debt>0) note.textContent=`Aset ${RM.format(gross)} − hutang tanpa insurans ${RM.format(debt)}`;
+  if(debt>0 && gross-debt<0) note.textContent=`Aset ${RM0.format(gross)} − hutang ${RM0.format(debt)} — harta tidak mencukupi untuk menyelesaikan hutang.`;
+  else if(debt>0) note.textContent=`Aset ${RM0.format(gross)} − hutang tanpa insurans ${RM0.format(debt)}`;
   else note.textContent='';
 
   const list=document.getElementById('assetList'); list.innerHTML='';
   if(state.assets.length===0){
     list.innerHTML='<div class="empty-state">Belum ada aset. Tekan “+ Tambah Aset”.</div>';
   } else {
-    state.assets.forEach((a,idx)=>{
+    sortedView(state.assets, assetSort).forEach(({item:a, idx})=>{
       const la=Number(a.loanAmount)||0;
       const reduced=a.isLoan && !a.isInsured && la>0;
       const eff=reduced ? a.amount-la : a.amount;
       let tag='';
-      if(a.isLoan && a.isInsured) tag=`<div class="tag ins">Berhutang ${RM.format(la)} — dilindungi insurans</div>`;
-      else if(a.isLoan && !a.isInsured && la>0) tag=`<div class="tag">− Hutang ${RM.format(la)} ditolak</div>`;
+      if(a.isLoan && a.isInsured) tag=`<div class="tag ins">Berhutang ${RM0.format(la)} — dilindungi insurans</div>`;
+      else if(a.isLoan && !a.isInsured && la>0) tag=`<div class="tag">− Hutang ${RM0.format(la)} ditolak</div>`;
+      const ex=extraLineFor(a.extra);
       const div=document.createElement('div'); div.className='asset';
-      div.innerHTML=`<span class="type">${ASSET_NAME[a.type]||a.type}</span>
-        <div class="meta"><div class="nm">${escapeHtml(a.label)}</div>${tag}</div>
-        <span class="amt">${reduced?`<span class="strike">${RM.format(a.amount)}</span>`:''}${RM.format(eff)}</span>`;
+      div.innerHTML=`<div class="meta">
+          <div class="cat">${escapeHtml(ASSET_NAME[a.type]||a.type)}</div>
+          <div class="nm">${escapeHtml(a.label)}</div>${tag}${ex?`<div class="asset-extra">${escapeHtml(ex)}</div>`:''}
+        </div>
+        <span class="amt">${reduced?`<span class="strike">${RM0.format(a.amount)}</span>`:''}${RM0.format(eff)}</span>`;
       const del=document.createElement('button'); del.className='del'; del.textContent='🗑';
-      del.title='Padam'; del.onclick=()=>{ state.assets.splice(idx,1); save(); renderAssets(); };
+      del.title='Padam'; del.setAttribute('aria-label','Padam '+a.label);
+      del.onclick=()=>{ if(confirm(`Padam aset "${a.label}"?`)){ state.assets.splice(idx,1); save(); renderAssets(); } };
       div.appendChild(del); list.appendChild(div);
     });
   }
@@ -900,17 +1183,21 @@ function renderAssets(){
   if(loans.length===0){
     llist.innerHTML='<div class="empty-state">Belum ada hutang direkodkan.</div>';
   } else {
-    loans.forEach((l,idx)=>{
+    sortedView(loans, loanSort).forEach(({item:l, idx})=>{
       const amt=Number(l.amount)||0;
       const tag=l.isInsured
         ? `<div class="tag ins">Dilindungi insurans — tidak ditolak</div>`
         : `<div class="tag">− Ditolak daripada harta</div>`;
+      const ex=extraLineFor(l.extra);
       const div=document.createElement('div'); div.className='asset debt';
-      div.innerHTML=`<span class="type">Hutang</span>
-        <div class="meta"><div class="nm">${escapeHtml(l.label)}</div>${tag}</div>
-        <span class="amt">${l.isInsured?'':'− '}${RM.format(amt)}</span>`;
+      div.innerHTML=`<div class="meta">
+          <div class="cat">Hutang</div>
+          <div class="nm">${escapeHtml(l.label)}</div>${tag}${ex?`<div class="asset-extra">${escapeHtml(ex)}</div>`:''}
+        </div>
+        <span class="amt">${l.isInsured?'':'− '}${RM0.format(amt)}</span>`;
       const del=document.createElement('button'); del.className='del'; del.textContent='🗑';
-      del.title='Padam'; del.onclick=()=>{ state.loans.splice(idx,1); save(); renderAssets(); };
+      del.title='Padam'; del.setAttribute('aria-label','Padam '+l.label);
+      del.onclick=()=>{ if(confirm(`Padam hutang "${l.label}"?`)){ state.loans.splice(idx,1); save(); renderAssets(); } };
       div.appendChild(del); llist.appendChild(div);
     });
   }
@@ -919,54 +1206,243 @@ function renderAssets(){
   const dist=document.getElementById('distList'); dist.innerHTML='';
   const res=solveFaraid(state.sel);
   const all=res.rows.slice(); if(res.baitulmal) all.push(res.baitulmal);
-  if(all.length===0){ dist.innerHTML='<div class="empty-state">Pilih waris di skrin Faraid dahulu.</div>'; }
+  if(res.rows.length===0){ dist.innerHTML='<div class="empty-state">Pilih waris di skrin Faraid dahulu.</div>'; }
   else all.forEach((r,i)=>{
     const c=PIE_COLORS[i%PIE_COLORS.length];
     const amt=fval(r.frac)*net;
     const row=document.createElement('div'); row.className='row';
     let sub=`${r.percent.toFixed(2)}%`;
-    if(r.count>1) sub+=` • ${RM.format(amt/r.count)} seorang`;
+    if(r.count>1) sub+=` • ${RM0.format(amt/r.count)} seorang`;
     row.innerHTML=`<span class="sw" style="background:${c}"></span>
       <span class="nm">${r.label}${r.count>1?` ×${r.count}`:''}<span class="sub">${sub}</span></span>
-      <span class="pct">${RM.format(amt)}</span>`;
+      <span class="pct">${RM0.format(amt)}</span>`;
     dist.appendChild(row);
   });
   renderFunnelInto('assetsFunnel', false);
 }
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 
+/* Banner shown while the first-run example estate is on screen (until the user edits). */
+function renderSeedBanner(){
+  ['seedBannerDash','seedBannerAssets'].forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    if(!exampleData){ el.innerHTML=''; el.style.display='none'; return; }
+    el.style.display='block'; el.innerHTML='';
+    const wrap=document.createElement('div'); wrap.className='seed-banner';
+    const txt=document.createElement('span');
+    txt.innerHTML='📌 <strong>Data contoh</strong> ditunjukkan sebagai panduan. Edit aset &amp; waris anda — perubahan pertama akan menggantikannya.';
+    const btn=document.createElement('button'); btn.type='button'; btn.textContent='Kosongkan'; btn.onclick=clearExample;
+    wrap.append(txt,btn); el.appendChild(wrap);
+  });
+}
+
 /* ============================================================
    DASHBOARD rendering (landing page: estate summary + quick nav)
    ============================================================ */
 function renderDashboard(){
+  renderSeedBanner();
   const gross=grossTotal(), debt=debtTotal(), net=netTotal();
-  document.getElementById('dashNet').textContent=RM.format(net);
+  document.getElementById('dashNet').textContent=RM0.format(net);
   const sub=document.getElementById('dashNetSub');
-  if(debt>0 && gross-debt<0) sub.textContent=`Aset ${RM.format(gross)} − hutang ${RM.format(debt)} — harta tidak mencukupi.`;
-  else if(debt>0) sub.textContent=`Aset ${RM.format(gross)} − hutang tanpa insurans ${RM.format(debt)}`;
-  else sub.textContent=`Aset ${RM.format(gross)}`;
+  if(debt>0 && gross-debt<0) sub.textContent=`Aset ${RM0.format(gross)} − hutang ${RM0.format(debt)} — harta tidak mencukupi.`;
+  else if(debt>0) sub.textContent=`Aset ${RM0.format(gross)} − hutang tanpa insurans ${RM0.format(debt)}`;
+  else sub.textContent=`Aset ${RM0.format(gross)}`;
 
-  const heirHeads=Object.values(state.sel).reduce((a,b)=>a+(Number(b)||0),0);
-  document.getElementById('statHeirs').textContent=heirHeads;
-  document.getElementById('statAssets').textContent=state.assets.length;
-  document.getElementById('statDebts').textContent=(state.loans||[]).length;
+  const sig=buildFunnelSignals();
+  renderHealth(gross,debt,net,sig);
+  renderDashInsight(sig);
 
-  const dist=document.getElementById('dashDist'); dist.innerHTML='';
+  // distribution: donut + legend + base
   const res=solveFaraid(state.sel);
   const all=res.rows.slice(); if(res.baitulmal) all.push(res.baitulmal);
-  if(all.length===0){ dist.innerHTML='<div class="empty-state">Pilih waris di Kalkulator Faraid untuk lihat agihan.</div>'; }
-  else all.forEach((r,i)=>{
+  const pie=document.getElementById('dashPie');
+  const dist=document.getElementById('dashDist'); dist.innerHTML='';
+  const base=document.getElementById('dashBase');
+  if(res.rows.length===0){           // nothing selected yet → onboarding, not "Baitulmal 100%"
+    pie.className='pie dash empty'; pie.style.background=''; pie.textContent='Belum ada waris';
+    dist.innerHTML='<div class="empty-state" style="padding:12px">Pilih waris di Kalkulator Faraid untuk lihat bahagian pusaka.</div>';
+    base.style.display='none';
+    renderDashBills(); renderFunnel(); return;
+  }
+  let acc=0, stops=[];
+  all.forEach((r,i)=>{ const c=PIE_COLORS[i%PIE_COLORS.length]; const s=acc, e=acc+r.percent; acc=e;
+    stops.push(`${c} ${s.toFixed(3)}% ${e.toFixed(3)}%`); });
+  pie.className='pie dash'; pie.textContent=''; pie.style.background=`conic-gradient(${stops.join(',')})`;
+  all.forEach((r,i)=>{
     const c=PIE_COLORS[i%PIE_COLORS.length];
     const amt=fval(r.frac)*net;
     const row=document.createElement('div'); row.className='row';
-    const detail=net>0 ? RM.format(amt) : `bahagian ${ffmt(r.frac)}`;
+    const detail=net>0 ? RM0.format(amt) : `bahagian ${ffmt(r.frac)}`;
     row.innerHTML=`<span class="sw" style="background:${c}"></span>
       <span class="nm">${r.label}${r.count>1?` ×${r.count}`:''}<span class="sub">${detail}</span></span>
       <span class="pct">${r.percent.toFixed(2)}%</span>`;
     dist.appendChild(row);
   });
+  const heads=res.rows.reduce((a,r)=>a+r.count,0);
+  base.style.display='flex';
+  base.innerHTML=`<span>${heads} waris menerima</span><span>Asal Masalah ${res.base}</span>`;
+  renderDashBills();
   renderFunnel();
 }
+
+/* Financial-health bar in the hero: how much of gross wealth is "boleh dibahagi"
+   (net, green) vs encumbered by deductible debt (red), plus a plain-language verdict. */
+function renderHealth(gross,debt,net,s){
+  const el=document.getElementById('dashHealth'); if(!el) return;
+  if(gross<=0){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='block';
+  const pctNet=Math.max(0,Math.min(100, net/gross*100));
+  const pctDebt=100-pctNet;
+  let verdict, cls;
+  if(s.underwater || s.debtRatio>=0.5){ verdict='Perlu Perhatian'; cls='bad'; }
+  else if(s.debtRatio>=0.25 || s.liquidRatio<0.2){ verdict='Sederhana'; cls='mid'; }
+  else { verdict='Sihat'; cls='good'; }
+  el.innerHTML=
+    `<div class="health-bar"><span class="seg net" style="width:${pctNet}%"></span><span class="seg debt" style="width:${pctDebt}%"></span></div>
+     <div class="health-row">
+       <span class="health-verdict ${cls}">Kesihatan harta: ${verdict}</span>
+       <span class="health-key"><span><span class="dot net"></span>Bersih ${pctNet.toFixed(0)}%</span><span><span class="dot debt"></span>Hutang ${pctDebt.toFixed(0)}%</span></span>
+     </div>`;
+}
+
+/* The "needs attention" chips that replaced the vanity counts — derived from
+   the same signals the funnel uses, so the dashboard surfaces the one or two
+   most important things about this estate (and the funnel below offers the fix). */
+function renderDashInsight(s){
+  const el=document.getElementById('dashInsight'); if(!el) return;
+  el.innerHTML='';
+  const chips=[];                                  // [severity, icon, text]
+  if(s.noHeirs){
+    chips.push(['info','👤','Pilih waris untuk lihat bahagian pusaka']);
+  } else {
+    if(s.baitulmalPct>0)              chips.push(['crit','⚠',`${s.baitulmalPct.toFixed(0)}% berisiko ke Baitulmal`]);
+    if(s.underwater)                  chips.push(['crit','⚠','Hutang melebihi aset boleh dibahagi']);
+    else if(s.debtRatio>=0.5)         chips.push(['warn','•',`Hutang ${Math.round(s.debtRatio*100)}% daripada aset`]);
+    if(s.hasSpouse && !s.hasDescendant) chips.push(['warn','•','Tanpa anak — pasangan tidak warisi semua']);
+    if(s.hasDaughter && !s.hasMaleDescendant) chips.push(['warn','•','Tiada anak lelaki — baki ke waris asabah']);
+    if(s.uninsuredPropertyLoan)       chips.push(['warn','•','Pinjaman rumah belum dilindungi']);
+  }
+  const rk={crit:3,warn:2,ok:1,info:0};
+  chips.sort((a,b)=>rk[b[0]]-rk[a[0]]);
+  let top=chips.slice(0,2);
+  if(top.length===0) top=[['ok','✓','Agihan lengkap kepada waris keluarga']];
+  top.forEach(([sev,icon,txt])=>{ const c=document.createElement('span'); c.className='chip '+sev; c.textContent=`${icon} ${txt}`; el.appendChild(c); });
+}
+
+/* ============================================================
+   MONTHLY BILLS tracker
+   Live tie-in: marking a loan/financing bill as paid reduces that target's
+   real outstanding balance (reversible), which flows into the net estate.
+   Loan/asset bills are derived from their "Ansuran bulanan"; other bills are
+   manual (state.bills). Paid status is logged per month in state.billLog.
+   ============================================================ */
+const BILL_MONTHS=['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
+function ymKey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function ymLabel(key){ const p=key.split('-').map(Number); return BILL_MONTHS[p[1]-1]+' '+p[0]; }
+function ymShift(key,delta){ const p=key.split('-').map(Number); return ymKey(new Date(p[0],p[1]-1+delta,1)); }
+let billMonth=ymKey(new Date());
+
+function getBills(){
+  const out=[];
+  (state.assets||[]).forEach(a=>{ if(a.isLoan && a.extra && Number(a.extra.monthly)>0)
+    out.push({key:'asset:'+a.id, label:a.label, category:(ASSET_NAME[a.type]||'Aset'), defaultAmount:Number(a.extra.monthly), link:{kind:'asset',id:a.id}, manual:false}); });
+  (state.loans||[]).forEach(l=>{ if(l.extra && Number(l.extra.monthly)>0)
+    out.push({key:'loan:'+l.id, label:l.label, category:'Hutang', defaultAmount:Number(l.extra.monthly), link:{kind:'loan',id:l.id}, manual:false}); });
+  (state.bills||[]).forEach(b=>{
+    out.push({key:'m:'+b.id, label:b.label, category:b.category||'Bil', defaultAmount:Number(b.amount)||0, link:null, manual:true, manualId:b.id}); });
+  return out;
+}
+function linkTarget(link){ if(!link) return null;
+  return link.kind==='loan' ? (state.loans||[]).find(l=>l.id===link.id) : (state.assets||[]).find(a=>a.id===link.id); }
+function linkBalance(link){ const t=linkTarget(link); if(!t) return null;
+  return link.kind==='loan' ? (Number(t.amount)||0) : (Number(t.loanAmount)||0); }
+function setLinkBalance(link,val){ const t=linkTarget(link); if(!t) return;
+  if(link.kind==='loan') t.amount=val; else t.loanAmount=val; }
+function billLogFor(month){ return (state.billLog&&state.billLog[month])||{}; }
+function billSummary(){
+  const bills=getBills(), log=billLogFor(billMonth);
+  let total=0,paidAmt=0,paidCount=0;
+  bills.forEach(b=>{ total+=b.defaultAmount; if(b.key in log){ paidCount++; paidAmt+=Number(log[b.key])||0; } });
+  return {n:bills.length, paidCount, total, paidAmt};
+}
+function toggleBillPaid(item, amt){
+  if(!state.billLog) state.billLog={};
+  const log = state.billLog[billMonth] = state.billLog[billMonth] || {};
+  if(item.key in log){                                   // unpay → restore exactly what was deducted
+    const paid=Number(log[item.key])||0;
+    if(item.link){ const b=linkBalance(item.link); if(b!==null) setLinkBalance(item.link, b+paid); }
+    delete log[item.key];
+  } else {                                               // pay → deduct (clamped) from the linked balance
+    let recorded=amt;
+    if(item.link){ const b=linkBalance(item.link); if(b!==null){ const ded=Math.max(0,Math.min(amt,b)); setLinkBalance(item.link, b-ded); recorded=ded; } }
+    log[item.key]=recorded;
+  }
+  save(); renderBills();
+}
+function renderBills(){
+  document.getElementById('billMonthLabel').textContent=ymLabel(billMonth);
+  const bills=getBills(), log=billLogFor(billMonth), s=billSummary();
+  document.getElementById('billPaidTotal').textContent=RM0.format(s.paidAmt);
+  document.getElementById('billNote').textContent=`${s.paidCount}/${s.n} bil • daripada ${RM0.format(s.total)} dianggarkan`;
+  const list=document.getElementById('billList'); list.innerHTML='';
+  if(bills.length===0){ list.innerHTML='<div class="empty-state">Belum ada bil. Tambah “Ansuran bulanan” pada pinjaman/aset, atau tekan “+ Tambah Bil”.</div>'; return; }
+  bills.forEach(b=>{
+    const paid = b.key in log;
+    const div=document.createElement('div'); div.className='bill'+(paid?' paid':'');
+    const chk=document.createElement('button'); chk.type='button'; chk.className='chk';
+    chk.setAttribute('role','checkbox'); chk.setAttribute('aria-checked',paid?'true':'false');
+    chk.setAttribute('aria-label',(paid?'Nyahtanda ':'Tanda dibayar ')+b.label); chk.textContent=paid?'✓':'';
+    const meta=document.createElement('div'); meta.className='meta';
+    let balLine='';
+    if(b.link){ const bal=linkBalance(b.link); if(bal!==null) balLine=`<div class="bal">Baki pinjaman kini: ${RM0.format(bal)}</div>`; }
+    meta.innerHTML=`<div class="cat">${escapeHtml(b.category)}</div><div class="nm">${escapeHtml(b.label)}</div>${balLine}`;
+    const amtin=document.createElement('input'); amtin.className='amtin'; amtin.type='text'; amtin.inputMode='numeric';
+    amtin.value=Number(paid?log[b.key]:b.defaultAmount).toLocaleString('en-US'); amtin.disabled=paid;
+    amtin.setAttribute('aria-label','Jumlah '+b.label); attachMoneyInput(amtin);
+    chk.onclick=()=>{ const amt=parseAmount(amtin.value)||b.defaultAmount||0; toggleBillPaid(b, amt); };
+    div.append(chk,meta,amtin);
+    if(b.manual){ const del=document.createElement('button'); del.className='del'; del.textContent='🗑';
+      del.title='Padam'; del.setAttribute('aria-label','Padam '+b.label);
+      del.onclick=()=>{ if(confirm(`Padam bil "${b.label}"?`)){ state.bills=(state.bills||[]).filter(x=>x.id!==b.manualId); save(); renderBills(); } };
+      div.appendChild(del); }
+    list.appendChild(div);
+  });
+}
+function renderDashBills(){
+  const el=document.getElementById('dashBills'); if(!el) return;
+  const s=billSummary();
+  if(s.n===0){ el.innerHTML='<div class="empty-state" style="padding:12px">Belum ada bil bulanan. Tekan “Urus Bil”.</div>'; return; }
+  el.innerHTML=`<div class="dash-bills-row"><span>${ymLabel(billMonth)}</span><span class="muted">${s.paidCount}/${s.n} dibayar</span></div>
+    <div class="dash-bills-row"><span class="muted">Jumlah dibayar</span><span><strong>${RM0.format(s.paidAmt)}</strong> / ${RM0.format(s.total)}</span></div>`;
+}
+/* add-bill modal */
+const billModal=document.getElementById('billModal');
+function openBillModal(){
+  document.getElementById('bLabel').value=''; document.getElementById('bAmount').value='';
+  document.getElementById('bCategory').value=''; document.getElementById('billErr').textContent='';
+  openOverlay(billModal); setTimeout(()=>document.getElementById('bLabel').focus(),50);
+}
+function closeBillModal(){ closeOverlay(billModal); }
+attachMoneyInput(document.getElementById('bAmount'));
+document.getElementById('saveBill').onclick=function(){
+  const label=document.getElementById('bLabel').value.trim();
+  const amount=parseAmount(document.getElementById('bAmount').value);
+  const err=document.getElementById('billErr');
+  if(!label){ err.textContent='Sila isi nama bil.'; return; }
+  if(isNaN(amount)||amount<=0){ err.textContent='Sila isi jumlah yang sah.'; return; }
+  const category=document.getElementById('bCategory').value.trim()||'Bil';
+  if(!state.bills) state.bills=[];
+  state.bills.push({id:uid(),label,amount,category});
+  save(); closeBillModal(); renderBills();
+};
+document.getElementById('cancelBill').onclick=closeBillModal;
+document.getElementById('closeBillX').onclick=closeBillModal;
+billModal.addEventListener('click',e=>{ if(e.target===billModal) closeBillModal(); });
+document.getElementById('addBillBtn').onclick=openBillModal;
+document.getElementById('billPrev').onclick=()=>{ billMonth=ymShift(billMonth,-1); renderBills(); };
+document.getElementById('billNext').onclick=()=>{ billMonth=ymShift(billMonth,1); renderBills(); };
+document.getElementById('backDashBills').onclick=()=>showView('dashboard');
+document.getElementById('goBills').onclick=()=>showView('bills');
 
 /* ============================================================
    FUNNEL rendering (product recommendations → cards / modal / CTA)
@@ -979,14 +1455,17 @@ function renderDashboard(){
    Set `whatsapp` (MY format, digits only, e.g. 60123456789) and each product
    `url`/referral link. Until `whatsapp` is set, CTAs fall back to the product URL. */
 const FUNNEL = {
-  agentName: 'Nama Ejen',
-  whatsapp: '',                          // e.g. '60123456789' — digits only, no + or spaces
+  agentName: 'Kamal Zakaria',
+  whatsapp: '60176663859',                          // e.g. '60123456789' — digits only, no + or spaces
   leadMode: 'whatsapp',                  // 'whatsapp' | 'form'
   formEndpoint: '',                      // used only when leadMode==='form' (Phase 6)
   products: {
     takaful_hibah: {
       brand:'Takaful Ikhlas', name:'Takaful Hibah (IKHLAS Dariku)', icon:'🛡', accent:'#2e7d32', url:'',
       tagline:'Tunai segera, bebas faraid — untuk hutang & nafkah waris.',
+      overview:'Pelan takaful keluarga yang manfaat kematiannya dihibahkan terus kepada penama anda. Wang dibayar dalam masa singkat selepas kematian — tidak perlu menunggu proses pusaka yang lambat — supaya waris ada tunai untuk hutang, sara hidup & perbelanjaan segera.',
+      whyTitle:'Apa erti untuk waris anda',
+      why:'Waris dapat tunai segera untuk membayar hutang & menampung kos harian, tanpa terpaksa menjual rumah atau menunggu harta dibahagikan.',
       benefits:[
         'IKHLAS Dariku: manfaat kematian sehingga 400% dibayar segera kepada penama — tunai yang memintas harta pusaka beku.',
         'Tunai untuk menyelesaikan hutang tanpa waris terpaksa menjual aset / rumah dilelong.',
@@ -998,6 +1477,9 @@ const FUNNEL = {
     hibah_amanah: {
       brand:'Wasiyyah Shoppe', name:'Hibah Hartanah / Amanah', icon:'📜', accent:'#5b3a9e', url:'',
       tagline:'Pindah milik aset tertentu kepada orang pilihan, di luar faraid.',
+      overview:'Pemberian sah semasa hidup yang memindahkan aset tertentu (rumah, simpanan) terus kepada orang pilihan anda. Apabila syarat hibah sempurna, aset itu terkeluar daripada pembahagian faraid — jadi ia terus menjadi milik penerima yang anda tetapkan.',
+      whyTitle:'Apa erti untuk waris anda',
+      why:'Pasangan atau anak anda terus memiliki aset yang anda hibahkan, tanpa perlu dikongsi dengan semua waris atau melalui pertikaian pembahagian.',
       benefits:[
         'Hibah Hartanah Bercagar (HBB): hibah rumah yang masih ada pinjaman — penyelesaian khas untuk rumah bercagar.',
         'Hibah Hartanah: rumah/tanah milik penuh dipindah terus kepada pasangan/anak, elak harta beku.',
@@ -1009,6 +1491,9 @@ const FUNNEL = {
     wasiat: {
       brand:'Wasiyyah Shoppe', name:'Wasiat', icon:'📝', accent:'#7e57c2', url:'',
       tagline:'Wasiat ≤1/3, lantik penjaga & wasi.',
+      overview:'Dokumen wasiat membolehkan anda memberi sehingga 1/3 harta kepada bukan-waris, melantik penjaga (hadhanah) untuk anak bawah umur, dan melantik wasi untuk menguruskan pusaka. Baki 2/3 tetap dibahagikan mengikut faraid.',
+      whyTitle:'Apa erti untuk waris anda',
+      why:'Hasrat khusus anda (anak angkat, badan amal, penjaga anak) dilaksanakan secara sah, dan pusaka diurus oleh wasi yang anda percayai.',
       benefits:[
         'Wasiatkan sehingga 1/3 harta kepada bukan-waris (anak angkat, badan amal, ibu bapa bukan Islam).',
         'Lantik penjaga (hadhanah) bagi waris bawah umur.',
@@ -1020,6 +1505,9 @@ const FUNNEL = {
     al_wasitah: {
       brand:'Wasiyyah Shoppe', name:'Al-Wasitah', icon:'🗂', accent:'#00897b', url:'',
       tagline:'Elak harta beku — bantuan pengurusan pusaka & wasiat untuk waris.',
+      overview:'Pelan keahlian pentadbiran pusaka (khairat pusaka). Apabila anda meninggal, ia membantu waris menguruskan proses pusaka — dokumentasi, mahkamah, pejabat tanah & pembahagian faraid — termasuk peruntukan kos supaya waris tidak terbeban. Ini bukan hibah; ia memastikan faraid dilaksanakan dengan lancar.',
+      whyTitle:'Apa erti untuk waris anda',
+      why:'Waris tidak terkapai-kapai dengan urusan pusaka yang rumit & mahal. Proses lebih cepat, kos pentadbiran ditanggung, dan harta tidak menjadi “beku”.',
       benefits:[
         'Bantuan pengurusan pusaka: dokumentasi, nasihat waris & urusan dengan mahkamah/pejabat tanah.',
         'Peruntukan kos pentadbiran pusaka (Mutiara hingga RM20k / Berlian hingga RM60k) supaya waris tidak terbeban.',
@@ -1123,11 +1611,17 @@ function ctaHref(productKey){
 function renderFunnelInto(hostId, full){
   const host = document.getElementById(hostId);
   if(!host) return;
-  const rec = recommendProducts(buildFunnelSignals());
+  const signals = buildFunnelSignals();
+  const rec = recommendProducts(signals);
   host.innerHTML='';
   if(!rec.primary){
     host.innerHTML='<div class="empty-state">Pilih waris &amp; isi aset untuk lihat cadangan.</div>';
     return;
+  }
+  if(signals.noHeirs){
+    const hint=document.createElement('div'); hint.className='funnel-hint';
+    hint.textContent='💡 Pilih waris di Kalkulator Faraid untuk cadangan yang lebih tepat untuk situasi anda.';
+    host.appendChild(hint);
   }
   host.appendChild(primaryCard(rec.ranked[0]));
   const rest = rec.ranked.slice(1);
@@ -1157,13 +1651,16 @@ function primaryCard(entry){
   card.style.borderLeftColor=p.accent;
   const critical = entry.severity>=3;
   const chip = entry.product==='al_wasitah' ? 'Disyorkan Untuk Semua' : (SEV_CHIP[entry.severity]||'Cadangan');
+  const bullets = (p.benefits||[]).slice(0,3).map(t=>`<li>${escapeHtml(t)}</li>`).join('');
   card.innerHTML=
     `<span class="funnel-chip${critical?' crit':''}">${critical?'⚠ ':''}${chip}</span>
      <div class="funnel-head">
        <span class="ic">${p.icon}</span>
-       <div><div class="nm">${p.name}</div><div class="br">${p.brand}</div></div>
+       <div><div class="nm">${escapeHtml(p.name)}</div><div class="br">${escapeHtml(p.brand)}</div></div>
      </div>
-     <div class="funnel-reason">${FUNNEL_COPY[top.code](top.data)}</div>`;
+     ${p.overview?`<p class="funnel-overview">${escapeHtml(p.overview)}</p>`:''}
+     <div class="funnel-reason"><span class="rh">Kenapa ini relevan untuk anda</span>${escapeHtml(FUNNEL_COPY[top.code](top.data))}</div>
+     ${bullets?`<ul class="funnel-bullets">${bullets}</ul>`:''}`;
   const cta=document.createElement('div'); cta.className='funnel-cta';
   const get=document.createElement('a'); get.className='btn primary';
   get.textContent='Dapatkan Sebut Harga'; get.href=ctaHref(entry.product);
@@ -1172,15 +1669,25 @@ function primaryCard(entry){
   learn.textContent='Pelajari →'; learn.onclick=()=>openFunnelModal(entry.product);
   cta.append(get,learn);
   card.appendChild(cta);
+  const priv=document.createElement('div'); priv.className='funnel-priv';
+  priv.innerHTML='<span>🔒</span><span>Ringkasan situasi anda hanya dihantar apabila anda klik &amp; sahkan di WhatsApp.</span>';
+  card.appendChild(priv);
   return card;
 }
 function secondaryCard(entry){
   const p = FUNNEL.products[entry.product];
+  const top = entry.triggers[0];
+  // show the personalised reason if this product was actually triggered, else its outcome line
+  const why = (top && top.severity>0) ? FUNNEL_COPY[top.code](top.data) : (p.why || p.tagline);
   const b=document.createElement('button'); b.className='funnel-sec';
   b.innerHTML=
     `<span class="ic">${p.icon}</span>
-     <span class="tx"><span class="nm">${p.name} · ${p.brand}</span><span class="ds">${p.tagline}</span></span>
-     <span class="ar">→</span>`;
+     <span class="tx">
+       <span class="nm">${escapeHtml(p.name)}</span>
+       <span class="br">${escapeHtml(p.brand)}</span>
+       <span class="ds">${escapeHtml(why)}</span>
+       <span class="lk">Lihat butiran &amp; manfaat →</span>
+     </span>`;
   b.onclick=()=>openFunnelModal(entry.product);
   return b;
 }
@@ -1194,7 +1701,8 @@ function openFunnelModal(productKey){
   document.getElementById('fmIcon').textContent=p.icon;
   document.getElementById('fmName').textContent=p.name;
   document.getElementById('fmBrand').textContent=p.brand;
-  document.getElementById('fmTagline').textContent=p.tagline;
+  document.getElementById('fmOverview').textContent=p.overview||p.tagline||'';
+  document.getElementById('fmWhy').textContent=p.why||'';
   const rs=document.getElementById('fmReasons'); rs.innerHTML='';
   const trigs = entry ? entry.triggers : [];
   if(!trigs.length){ const d=document.createElement('div'); d.className='note'; d.textContent='Cadangan umum perancangan harta.'; rs.appendChild(d); }
@@ -1205,10 +1713,11 @@ function openFunnelModal(productKey){
   document.getElementById('fmConfigWarn').style.display=(FUNNEL.leadMode==='whatsapp' && !waConfigured() && !p.url)?'block':'none';
   const cta=document.getElementById('fmCta');
   cta.href=ctaHref(productKey); cta.target='_blank'; cta.rel='noopener';
-  funnelModal.classList.add('open');
+  openOverlay(funnelModal);
 }
-function closeFunnelModal(){ funnelModal.classList.remove('open'); }
+function closeFunnelModal(){ closeOverlay(funnelModal); }
 document.getElementById('fmClose').onclick=closeFunnelModal;
+document.getElementById('fmCloseX').onclick=closeFunnelModal;
 funnelModal.addEventListener('click',e=>{ if(e.target===funnelModal) closeFunnelModal(); });
 
 /* ---- slim contextual nudge on the faraid result panel ---- */
@@ -1230,12 +1739,38 @@ function renderFaraidNudge(){
 }
 
 /* ============================================================
+   Modal infrastructure (focus restore, Escape-to-close)
+   ============================================================ */
+let _modalReturn=null;
+function openOverlay(el){ _modalReturn=document.activeElement; el.classList.add('open'); }
+function closeOverlay(el){ el.classList.remove('open'); if(_modalReturn&&_modalReturn.focus){ try{_modalReturn.focus();}catch(e){} } _modalReturn=null; }
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  ['modal','loanModal','funnelModal','billModal'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&el.classList.contains('open')) closeOverlay(el);
+  });
+});
+// toggle switches: keep visual + aria-checked in sync
+function setSwitch(el,on){ if(!el) return; el.classList.toggle('on',on); el.setAttribute('aria-checked', on?'true':'false'); }
+function resetSwitch(el){ setSwitch(el,false); }
+// make every .switch keyboard-operable (Space/Enter) — runs once at boot
+function enhanceSwitches(){
+  document.querySelectorAll('.switch').forEach(sw=>{
+    sw.setAttribute('role','switch');
+    sw.setAttribute('tabindex','0');
+    if(!sw.hasAttribute('aria-checked')) sw.setAttribute('aria-checked', sw.classList.contains('on')?'true':'false');
+    sw.addEventListener('keydown',ev=>{ if(ev.key===' '||ev.key==='Enter'){ ev.preventDefault(); sw.click(); } });
+  });
+}
+
+/* ============================================================
    ADD ASSET modal
    ============================================================ */
 const modal=document.getElementById('modal');
 let curType=null, swLoan=false, swInsured=false;
-function openModal(){ modal.classList.add('open'); showStep(1); buildTypeGrid(); }
-function closeModal(){ modal.classList.remove('open'); }
+function openModal(){ openOverlay(modal); showStep(1); buildTypeGrid(); }
+function closeModal(){ closeOverlay(modal); }
 function showStep(n){
   document.getElementById('modalStep1').style.display=n===1?'block':'none';
   document.getElementById('modalStep2').style.display=n===2?'block':'none';
@@ -1243,8 +1778,47 @@ function showStep(n){
 function buildTypeGrid(){
   const g=document.getElementById('typeGrid'); g.innerHTML='';
   ASSET_TYPES.forEach(t=>{
-    const c=document.createElement('div'); c.className='typecard'; c.textContent=t.name;
+    const c=document.createElement('button'); c.type='button'; c.className='typecard'; c.textContent=t.name;
     c.onclick=()=>openForm(t); g.appendChild(c);
+  });
+}
+/* Optional, per-category metadata fields (informational — not used in the net-total math). */
+const _NOM={key:'nominee',label:'Penama / penerima',type:'text'};
+const _INST={key:'institution',label:'Institusi / bank',type:'text'};
+const _ACC={key:'accountNo',label:'No. akaun / rujukan',type:'text'};
+const ASSET_FIELDS={
+  property:[{key:'location',label:'Lokasi / no. hakmilik',type:'text'},_INST,_NOM],
+  vehicle:[{key:'regNo',label:'No. pendaftaran',type:'text'},_INST,_NOM],
+  kwsp:[{key:'memberNo',label:'No. ahli KWSP',type:'text'},_NOM],
+  savings:[_INST,_ACC,_NOM], current:[_INST,_ACC,_NOM], asb:[_INST,_ACC,_NOM],
+  fd:[_INST,_ACC,_NOM], trust:[_INST,_ACC,_NOM],
+  life:[{key:'insurer',label:'Pengendali takaful/insurans',type:'text'},{key:'policyNo',label:'No. sijil / polisi',type:'text'},_NOM],
+  th:[{key:'accountNo',label:'No. akaun Tabung Haji',type:'text'},_NOM],
+  cds:[{key:'accountNo',label:'No. akaun CDS',type:'text'},{key:'broker',label:'Broker',type:'text'},_NOM],
+  stock:[{key:'company',label:'Nama syarikat',type:'text'},_NOM],
+  others:[{key:'note',label:'Catatan',type:'text'},_NOM],
+};
+const DEFAULT_FIELDS=[_NOM,{key:'note',label:'Catatan',type:'text'}];
+const EXTRA_ORDER=['monthly','institution','insurer','company','broker','location','regNo','accountNo','policyNo','memberNo','note','nominee','lender'];
+function extraLineFor(extra){
+  if(!extra) return '';
+  const parts=[];
+  EXTRA_ORDER.forEach(k=>{ const v=extra[k]; if(v===undefined||v===null||v==='') return;
+    if(k==='monthly') parts.push('Ansuran '+RM0.format(Number(v)||0)+'/bln');
+    else if(k==='nominee') parts.push('Penama: '+v);
+    else if(k==='lender') parts.push('Pemberi: '+v);
+    else parts.push(v);
+  });
+  return parts.join(' • ');
+}
+function buildAssetExtra(typeId){
+  const host=document.getElementById('assetExtra'); host.innerHTML='';
+  (ASSET_FIELDS[typeId]||DEFAULT_FIELDS).forEach(f=>{
+    const lab=document.createElement('label'); lab.textContent=f.label;
+    const inp=document.createElement('input'); inp.type='text'; inp.autocomplete='off';
+    inp.dataset.key=f.key; inp.dataset.kind=f.type;
+    if(f.type==='money'){ inp.inputMode='numeric'; attachMoneyInput(inp); }
+    host.append(lab,inp);
   });
 }
 function openForm(t){
@@ -1253,23 +1827,26 @@ function openForm(t){
   document.getElementById('fLabel').value='';
   document.getElementById('fAmount').value='';
   document.getElementById('fLoan').value='';
+  document.getElementById('fMonthly').value='';
   document.getElementById('formErr').textContent='';
   document.getElementById('loanWrap').style.display=t.loan?'block':'none';
   document.getElementById('loanDetail').style.display='none';
-  document.getElementById('swLoan').classList.remove('on');
-  document.getElementById('swInsured').classList.remove('on');
+  resetSwitch(document.getElementById('swLoan'));
+  resetSwitch(document.getElementById('swInsured'));
+  buildAssetExtra(t.id);
+  document.getElementById('assetExtraWrap').open=false;
   showStep(2);
   setTimeout(()=>document.getElementById('fLabel').focus(),50);
 }
 document.getElementById('swLoan').onclick=function(){
-  swLoan=!swLoan; this.classList.toggle('on',swLoan);
+  swLoan=!swLoan; setSwitch(this,swLoan);
   document.getElementById('loanDetail').style.display=swLoan?'block':'none';
   if(!swLoan){
-    swInsured=false; document.getElementById('swInsured').classList.remove('on');
+    swInsured=false; resetSwitch(document.getElementById('swInsured'));
     document.getElementById('fLoan').value='';
   }
 };
-document.getElementById('swInsured').onclick=function(){ swInsured=!swInsured; this.classList.toggle('on',swInsured); };
+document.getElementById('swInsured').onclick=function(){ swInsured=!swInsured; setSwitch(this,swInsured); };
 
 // only digits + thousands separator in money fields
 function attachMoneyInput(el){
@@ -1280,6 +1857,7 @@ function attachMoneyInput(el){
 }
 attachMoneyInput(document.getElementById('fAmount'));
 attachMoneyInput(document.getElementById('fLoan'));
+attachMoneyInput(document.getElementById('fMonthly'));
 function parseAmount(v){ const d=v.replace(/[^\d]/g,''); return d?parseInt(d,10):NaN; }
 
 document.getElementById('saveAsset').onclick=function(){
@@ -1293,13 +1871,23 @@ document.getElementById('saveAsset').onclick=function(){
     loanAmount=parseAmount(document.getElementById('fLoan').value);
     if(isNaN(loanAmount)||loanAmount<=0){ err.textContent='Sila isi baki pinjaman yang sah.'; return; }
   }
-  state.assets.push({type:curType.id,label,amount,isLoan:!!swLoan,isInsured:!!swInsured,loanAmount});
+  // optional, informational metadata
+  const extra={};
+  if(swLoan){ const m=parseAmount(document.getElementById('fMonthly').value); if(!isNaN(m)&&m>0) extra.monthly=m; }
+  document.querySelectorAll('#assetExtra [data-key]').forEach(inp=>{
+    const v=(inp.value||'').trim(); if(!v) return;
+    extra[inp.dataset.key] = inp.dataset.kind==='money' ? parseAmount(v) : v;
+  });
+  const asset={id:uid(),type:curType.id,label,amount,isLoan:!!swLoan,isInsured:!!swInsured,loanAmount};
+  if(Object.keys(extra).length) asset.extra=extra;
+  state.assets.push(asset);
   save(); closeModal(); renderAssets();
 };
 document.getElementById('cancelAsset').onclick=()=>{
-  // back to type picker if a type was chosen, else close
+  // "← Kembali" returns to the type picker; the × button closes entirely
   showStep(1);
 };
+document.getElementById('closeAssetX').onclick=closeModal;
 modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
 
 /* ============================================================
@@ -1311,14 +1899,17 @@ function openLoanModal(){
   swLoanInsured=false;
   document.getElementById('lLabel').value='';
   document.getElementById('lAmount').value='';
+  document.getElementById('lMonthly').value='';
+  document.getElementById('lLender').value='';
   document.getElementById('loanErr').textContent='';
-  document.getElementById('swLoanInsured').classList.remove('on');
-  loanModal.classList.add('open');
+  resetSwitch(document.getElementById('swLoanInsured'));
+  openOverlay(loanModal);
   setTimeout(()=>document.getElementById('lLabel').focus(),50);
 }
-function closeLoanModal(){ loanModal.classList.remove('open'); }
-document.getElementById('swLoanInsured').onclick=function(){ swLoanInsured=!swLoanInsured; this.classList.toggle('on',swLoanInsured); };
+function closeLoanModal(){ closeOverlay(loanModal); }
+document.getElementById('swLoanInsured').onclick=function(){ swLoanInsured=!swLoanInsured; setSwitch(this,swLoanInsured); };
 attachMoneyInput(document.getElementById('lAmount'));
+attachMoneyInput(document.getElementById('lMonthly'));
 document.getElementById('saveLoan').onclick=function(){
   const label=document.getElementById('lLabel').value.trim();
   const amount=parseAmount(document.getElementById('lAmount').value);
@@ -1326,25 +1917,42 @@ document.getElementById('saveLoan').onclick=function(){
   if(!label){ err.textContent='Sila isi nama hutang.'; return; }
   if(isNaN(amount)||amount<=0){ err.textContent='Sila isi jumlah hutang yang sah.'; return; }
   if(!state.loans) state.loans=[];
-  state.loans.push({label,amount,isInsured:!!swLoanInsured});
+  const extra={};
+  const m=parseAmount(document.getElementById('lMonthly').value); if(!isNaN(m)&&m>0) extra.monthly=m;
+  const lender=document.getElementById('lLender').value.trim(); if(lender) extra.lender=lender;
+  const loan={id:uid(),label,amount,isInsured:!!swLoanInsured};
+  if(Object.keys(extra).length) loan.extra=extra;
+  state.loans.push(loan);
   save(); closeLoanModal(); renderAssets();
 };
 document.getElementById('cancelLoan').onclick=closeLoanModal;
+document.getElementById('closeLoanX').onclick=closeLoanModal;
 loanModal.addEventListener('click',e=>{ if(e.target===loanModal) closeLoanModal(); });
 document.getElementById('addLoanBtn').onclick=openLoanModal;
+document.getElementById('assetSort').onchange=function(){ assetSort=this.value; renderAssets(); };
+document.getElementById('loanSort').onchange=function(){ loanSort=this.value; renderAssets(); };
 
 /* ============================================================
    Navigation + wiring
    ============================================================ */
-function showView(name){
+function showView(name, replace){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
   window.scrollTo(0,0);
   if(name==='dashboard') renderDashboard();
   if(name==='faraid') renderFaraid();
   if(name==='assets') renderAssets();
-  history.replaceState(null,'','#'+name);
+  if(name==='bills') renderBills();
+  const url='#'+name;
+  // pushState so the hardware/browser Back button navigates between views (not out of the app)
+  if(replace) history.replaceState({view:name},'',url);
+  else if(location.hash!==url) history.pushState({view:name},'',url);
 }
+window.addEventListener('popstate',()=>{
+  const h=location.hash.replace('#','');
+  const name=(h==='faraid'||h==='assets'||h==='bills'||h==='dashboard')?h:'dashboard';
+  showView(name, true);   // render the popped view without pushing a new entry
+});
 document.getElementById('goFaraid').onclick=()=>showView('faraid');
 document.getElementById('goAssets').onclick=()=>showView('assets');
 document.getElementById('backDashFaraid').onclick=()=>showView('dashboard');
@@ -1355,17 +1963,18 @@ document.getElementById('resetBtn').onclick=()=>{
   if(confirm('Set semula pilihan waris?')){ state.sel={}; save(); renderFaraid(); }
 };
 
-/* ---- boot (splash -> faraid), like SplashView ---- */
+/* ---- boot (brief splash -> initial view) ---- */
 load();
+enhanceSwitches();
 renderFaraid();
 window.addEventListener('load',()=>{
   setTimeout(()=>{
     const sp=document.getElementById('splash'); sp.classList.add('hide');
     const h=location.hash.replace('#','');
-    const start=(h==='assets'||h==='faraid')?h:'dashboard';
-    showView(start);
-    setTimeout(()=>sp.remove(),450);
-  },650);
+    const start=(h==='assets'||h==='faraid'||h==='bills')?h:'dashboard';
+    showView(start, true);   // initial view replaces history (no spurious back entry)
+    setTimeout(()=>sp.remove(),300);
+  },300);
 });
 </script>
 </body>

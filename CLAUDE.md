@@ -54,20 +54,43 @@ labeled sections (search for the `/* ===... */` banners):
   (count of sev>0 triggers) so an always-on info baseline can't pad a product into winning a
   critical tie; `al_wasitah` is last in the fixed-order tiebreak so it only becomes `primary`
   when nothing else reaches medium (i.e. a healthy estate).
-- **State + persistence** — `state = {sel, assets, loans}`, persisted to `localStorage`
-  under `faraid_web_state` (the web analogue of the Flutter Hive box). `loans` is a later
-  addition, so net-total math guards it as `(state.loans||[])` for backward compatibility.
-  On **first run** (no stored state) `seedDefaults()` populates `state.assets`/`state.loans`
-  from `DEFAULT_ASSETS`/`DEFAULT_LOANS` — a typical Malaysian (B40) example estate. The seed is
-  not saved until the user edits something, so their first change overwrites it.
+- **State + persistence** — `state = {sel, assets, loans, bills, billLog}`, persisted to `localStorage`
+  under `faraid_web_state` (the web analogue of the Flutter Hive box). `loans`/`bills`/`billLog` are
+  later additions, so code guards them as `(state.loans||[])` etc. for backward compatibility.
+  `ensureIds()` (run in `load`) gives every asset/loan/bill a stable `id` so monthly bills can link
+  to them across reorders/deletes. On **first run** `seedDefaults()` populates a typical Malaysian
+  (B40) example estate (assets/loans/bills); the seed isn't saved until the user edits something.
 - **Rendering** — `renderFaraid()` (heir grid + pie via CSS `conic-gradient` + legend)
-  and `renderAssets()` (asset list + RM distribution). The asset net-total logic is:
+  and `renderAssets()` (asset list + RM distribution). Heirs are shown in UI-only sections via
+  `HEIR_GROUPS` (render-only; the engine still keys off canonical `HEIRS` ids). Each heir's
+  tap-target is a real `<button class="heir-tap" aria-pressed>` with the stepper as a sibling
+  (never nest interactive controls); switches are `role="switch"` (keyboard via `enhanceSwitches`).
+  Money is formatted with `RM0` (whole-ringgit `Intl.NumberFormat`); there is no 2-decimal `RM`.
+  Modals share `openOverlay`/`closeOverlay` (focus restore) + a global Escape handler.
+  First-run example data sets `exampleData=true` (cleared on first `save()`), surfaced by
+  `renderSeedBanner()`. The asset net-total logic is:
   `netTotal = max(0, sum(amounts) − sum(uninsured outstanding loans) − sum(uninsured standalone debts))`.
   An **insured** loan is settled by insurance, so its asset counts in full and nothing is deducted;
   an **uninsured** loan's outstanding balance is deducted; an insolvent estate clamps to 0.
   Standalone debts live in `state.loans` (`{label, amount, isInsured}`) — debts not tied to a
   specific asset (personal loans, credit cards, funeral costs) — and follow the same insured rule.
-  `renderDashboard()` (landing view) shows the net estate, stats, distribution summary, and the funnel.
+  `renderDashboard()` (landing view) shows the net estate + a financial-health bar (`renderHealth`:
+  net vs deductible-debt split + Sihat/Sederhana/Perlu-Perhatian verdict), derived "needs attention"
+  insight chips (`renderDashInsight`, replacing vanity counts), the faraid distribution as a donut +
+  legend, then the funnel. Navigation is contextual: the assets action lives in the hero header and
+  the faraid action in the "Agihan Pusaka" header (both reuse ids `goAssets`/`goFaraid`). Distribution
+  renders use `res.rows.length===0` (not `all.length`) for the empty state so an unselected estate
+  shows onboarding, not a "Baitulmal 100%" slice. Assets/loans carry optional informational metadata
+  in an `extra` object (per-category fields from `ASSET_FIELDS`; `monthly`/`lender` for loans), shown
+  via `extraLineFor`; the category is an eyebrow label (not a variable-width pill) so titles align.
+  `sortedView(list,mode)` powers the per-section sort selects and preserves each item's original index
+  so deletes stay correct; sort state (`assetSort`/`loanSort`) is view-only (not persisted).
+- **Monthly bills (`view-bills`, `renderBills`)** — a per-month checklist. `getBills()` derives loan/
+  financing bills from any asset/loan with `extra.monthly>0` (linked) plus manual `state.bills`; paid
+  status is logged per month in `state.billLog['YYYY-MM'][key]`. **Live tie-in:** `toggleBillPaid`
+  deducts the paid amount from a linked loan's outstanding balance (`amount`/`loanAmount`, clamped) and
+  records the exact figure so unticking restores it — so paying flows into `netTotal`. The dashboard
+  shows a summary (`renderDashBills`); month nav via `ymShift`. Not used by the engine/tests.
 - **Funnel rendering** — `buildFunnelSignals()` (state → `signals`), `FUNNEL` (seller config:
   WhatsApp/products/copy), `FUNNEL_COPY` (code+data → Malay sentence), `renderFunnelInto`/
   `renderFunnel` (ranked cards), `openFunnelModal` (product detail + WhatsApp CTA), and
