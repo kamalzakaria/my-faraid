@@ -65,6 +65,35 @@ test('Husband + full sister (1/2 each)', {s:1,sk:1}, {s:[1,2], sk:[1,2]});
 test('Husband + 2 full sisters (aul 7)', {s:1,sk:2}, {s:[3,7], sk:[4,7]});
 test('Mother + father + 1 daughter', {i:1,b:1,ap:1}, {i:[1,6], ap:[1,2], b:[1,3]});
 
+// --- per-heir "Sebab" explainability (reasons on rows, baitulmal, and blockedRows) ---
+function rsn(name, sel, checks){
+  const res=solveFaraid(sel);
+  const byId={}; res.rows.forEach(r=>byId[r.id]=r.reason||'');
+  if(res.baitulmal) byId['baitulmal']=res.baitulmal.reason||'';
+  const blk={}; (res.blockedRows||[]).forEach(b=>blk[b.id]=b.reason||'');
+  let ok=true, msg=[];
+  for(const [id,frag] of Object.entries(checks.rows||{})){
+    if(!byId[id] || !byId[id].includes(frag)){ ok=false; msg.push(`row ${id} reason "${byId[id]||'(none)'}" lacks "${frag}"`); }
+  }
+  for(const [id,frag] of Object.entries(checks.blocked||{})){
+    if(!blk[id] || !blk[id].includes(frag)){ ok=false; msg.push(`blocked ${id} reason "${blk[id]||'(none)'}" lacks "${frag}"`); }
+  }
+  if(ok){ pass++; console.log(`✓ ${name}`); }
+  else { fail++; console.log(`✗ ${name}`); msg.forEach(m=>console.log('  '+m)); }
+}
+rsn('Wife with children → "Ada keturunan" 1/8', {is:1,al:1}, {rows:{is:'Ada keturunan', al:'asabah'}});
+rsn('Husband no children → "Tiada keturunan" 1/2', {s:1,sk:1}, {rows:{s:'Tiada keturunan'}});
+rsn('Mother reduced to 1/6 by descendant', {i:1,al:1}, {rows:{i:'Ada keturunan'}});
+rsn('Mother 1/3 (no descendant, <2 siblings)', {i:1,bk:1}, {rows:{i:'kurang dua adik-beradik'}});
+rsn('Mother 1/6 via 2+ (mahjub) siblings', {i:1,bk:2,b:1}, {rows:{i:'Dua atau lebih adik-beradik'}});
+rsn('Daughter alone → radd marker', {ap:1}, {rows:{ap:'radd'}});
+rsn('Son + daughter asabah (2:1)', {al:1,ap:1}, {rows:{al:'asabah', ap:'asabah'}});
+rsn('Sister with daughter → asabah maal-ghair', {ap:1,sk:1}, {rows:{sk:"ma'al-ghair"}});
+rsn('Spouse-only surplus → Baitulmal reason', {s:1}, {rows:{baitulmal:'Baitulmal'}});
+rsn('Grandfather blocked by father (mahjub)', {b:1,d:1}, {blocked:{d:'Terhalang (mahjub) oleh Bapa'}});
+rsn('Grandson blocked by son (mahjub)', {al:1,cl:1}, {blocked:{cl:'Terhalang oleh Anak Lelaki'}});
+rsn('Umariyyatan mother reason', {s:1,i:1,b:1}, {rows:{i:'Umariyyatān'}});
+
 // --- asset net-total logic (insured debts not deducted; uninsured deducted; clamp at 0) ---
 const assetBlock = script.slice(script.indexOf('function loanDeduction'), script.indexOf('\nfunction renderAssets'));
 function netTotalFor(assets, loans){

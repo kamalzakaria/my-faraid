@@ -27,12 +27,14 @@
     --ok:#2e7d32; --bg:#f6f4fb; --card:#ffffff;
   }
   *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  button,input{-webkit-tap-highlight-color:transparent}
   body{margin:0;font-family:'Segoe UI',Roboto,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);}
   .view{display:none}
   .view.active{display:block}
   .appbar{position:sticky;top:0;z-index:10;background:var(--primary);color:#fff;display:flex;align-items:center;gap:8px;
     padding:12px 16px;box-shadow:0 2px 6px rgba(0,0,0,.18)}
-  .appbar h1{font-size:1.1rem;margin:0;flex:1;font-weight:600}
+  .appbar h1{font-size:1.1rem;margin:0;flex:1;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .appbar button{background:rgba(255,255,255,.16);color:#fff;border:0;padding:8px 14px;border-radius:8px;
     font-size:.9rem;cursor:pointer;font-weight:600}
   .appbar button:hover{background:rgba(255,255,255,.28)}
@@ -42,13 +44,15 @@
   @media(min-width:880px){.layout{grid-template-columns:1.4fr 1fr}}
   .section-title{font-weight:600;margin:4px 0 12px;font-size:1rem}
   .hint{color:var(--muted);font-size:.82rem;margin:0 0 12px}
+  .trust-line{display:flex;gap:6px;align-items:flex-start;background:var(--primary-soft);color:var(--primary-dark);
+    border-radius:8px;padding:8px 10px;font-size:.78rem;line-height:1.4;margin:0 0 12px}
 
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
   /* Fixed-size cards with a static stack: label / mahjub / counter. The label fills the top
      (flex:1) while the mahjub and counter rows always reserve their height, so a card never
      resizes when it becomes mahjub or gains a counter — every button stays the same size. */
   .heir{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center;
-    cursor:pointer;user-select:none;transition:.12s;height:108px;display:flex;flex-direction:column;
+    cursor:pointer;user-select:none;transition:.12s;height:114px;display:flex;flex-direction:column;
     align-items:center;gap:3px}
   .heir:hover{border-color:var(--primary)}
   .heir .lbl{flex:1;display:flex;align-items:center;justify-content:center;font-size:.82rem;line-height:1.2}
@@ -56,9 +60,9 @@
   .heir.blocked{background:var(--blocked);border-color:var(--blocked);color:#43424b}
   .heir .mahjub{height:13px;line-height:1;font-size:.66rem;font-style:italic;opacity:0}
   .heir.blocked .mahjub{opacity:.9}
-  .stepper{height:26px;display:flex;align-items:center;justify-content:center;gap:4px}
-  .stepper button{width:26px;height:26px;border-radius:50%;border:0;background:rgba(255,255,255,.25);color:#fff;
-    font-size:1rem;cursor:pointer;line-height:1}
+  .stepper{height:30px;display:flex;align-items:center;justify-content:center;gap:6px}
+  .stepper button{width:30px;height:30px;border-radius:50%;border:0;background:rgba(255,255,255,.25);color:#fff;
+    font-size:1.15rem;cursor:pointer;line-height:1}
   .stepper span{min-width:22px;font-weight:700}
 
   .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
@@ -72,6 +76,12 @@
   .legend .nm{flex:1}
   .legend .pct{font-weight:700;white-space:nowrap}
   .legend .sub{display:block;color:var(--muted);font-size:.74rem}
+  .legend .why{display:block;color:var(--primary-dark);font-size:.73rem;margin-top:2px}
+  .blocked-list{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+  .blocked-list:empty{display:none}
+  .blocked-title{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+  .blocked-list .brow{font-size:.78rem;color:var(--muted);padding:5px 9px;background:#f5f5f7;border-radius:7px}
+  .blocked-list .brow b{color:#444;font-weight:600}
   .notes{margin-top:12px}
   .note{background:var(--primary-soft);border-radius:8px;padding:8px 10px;font-size:.78rem;color:var(--primary-dark);margin-top:6px}
   .basebar{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);border-top:1px dashed var(--line);margin-top:10px;padding-top:8px}
@@ -87,7 +97,7 @@
 
   .total{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--line);
     border-radius:14px;padding:16px;margin-bottom:14px}
-  .total .big{font-size:1.5rem;font-weight:700;color:var(--primary-dark)}
+  .total .big{font-size:clamp(1.2rem,6vw,1.5rem);font-weight:700;color:var(--primary-dark)}
   .asset{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;
     padding:12px;margin-bottom:8px}
   .asset .type{font-size:.7rem;background:var(--primary-soft);color:var(--primary-dark);padding:3px 8px;border-radius:20px;white-space:nowrap}
@@ -97,7 +107,7 @@
   .asset .meta .tag.ins{color:var(--ok)}
   .asset .amt .strike{text-decoration:line-through;opacity:.5;font-weight:400;font-size:.82rem;margin-right:4px}
   .asset .amt{font-weight:700;white-space:nowrap}
-  .asset .del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem}
+  .asset .del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:6px;border-radius:8px;line-height:1}
   .asset.debt .type{background:#fdecec;color:#c62828}
   .asset.debt .amt{color:#c62828}
   .empty-state{text-align:center;color:var(--muted);padding:30px 10px;font-size:.9rem}
@@ -107,7 +117,7 @@
   .modal{background:#fff;border-radius:16px;max-width:380px;width:100%;padding:20px;max-height:90vh;overflow:auto}
   .modal h3{margin:0 0 14px}
   .modal label{display:block;font-size:.8rem;color:var(--muted);margin:10px 0 4px}
-  .modal input[type=text]{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:.95rem}
+  .modal input[type=text]{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:16px}
   .toggle-row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px;padding:10px;
     background:#faf9fe;border-radius:8px}
   .toggle-row small{display:block;color:var(--muted);font-size:.72rem}
@@ -137,7 +147,7 @@
   .hero{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border-radius:16px;
     padding:22px;margin-bottom:14px;box-shadow:0 4px 14px rgba(91,58,158,.25)}
   .hero .lbl{font-size:.85rem;opacity:.85}
-  .hero .amt{font-size:2rem;font-weight:700;margin-top:4px;line-height:1.1}
+  .hero .amt{font-size:clamp(1.5rem,7vw,2rem);font-weight:700;margin-top:4px;line-height:1.1;overflow-wrap:anywhere}
   .hero .sub{font-size:.78rem;opacity:.82;margin-top:8px}
   /* financial-health bar inside the hero */
   .health{margin-top:14px}
@@ -239,6 +249,15 @@
     border-radius:8px;padding:6px 12px;font-size:.78rem;font-weight:600;cursor:pointer}
   .seed-banner button:hover{background:#fffaf0}
 
+  /* ---- Private mode banner (shared devices / roadshows) ---- */
+  .privacy-banner{display:flex;align-items:center;gap:10px;background:#eef3ff;border:1px solid #b9c8f0;color:#2b3a67;
+    border-radius:10px;padding:10px 12px;font-size:.8rem;line-height:1.4;margin-bottom:14px}
+  .privacy-banner .pb-ic{font-size:1.1rem;flex:0 0 auto}
+  .privacy-banner .pb-tx{flex:1;min-width:0}
+  .privacy-banner .pb-clear{flex:0 0 auto;background:#fff;border:1px solid #b9c8f0;color:#2b3a67;border-radius:8px;
+    padding:6px 10px;font:inherit;font-size:.76rem;font-weight:600;cursor:pointer;white-space:nowrap}
+  .privacy-banner .pb-clear:hover{background:#f0f4ff}
+
   /* ---- Sticky result column on desktop ---- */
   @media(min-width:880px){ .result-col{position:sticky;top:76px;align-self:start} }
 
@@ -249,6 +268,24 @@
   .chip.warn{background:#fff4e0;color:#8a5a00}
   .chip.ok{background:#eaf6ea;color:#2e7d32}
   .chip.info{background:var(--primary-soft);color:var(--primary-dark)}
+
+  /* ---- Dashboard: estate-completeness meter ---- */
+  .complete-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:0 0 18px}
+  .complete-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .complete-title{font-weight:600;font-size:.92rem}
+  .complete-pct{font-weight:700;font-size:1.1rem;color:var(--primary-dark)}
+  .complete-bar{height:8px;border-radius:5px;background:#ece9f3;overflow:hidden;margin:10px 0}
+  .complete-bar span{display:block;height:100%;background:var(--primary);transition:width .3s}
+  .complete-card.good .complete-bar span{background:var(--ok)}
+  .complete-card.good .complete-pct{color:var(--ok)}
+  .complete-card.low .complete-bar span{background:#e0a23b}
+  .complete-missing{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+  .complete-chip{font:inherit;font-size:.76rem;font-weight:600;color:var(--primary-dark);background:var(--primary-soft);
+    border:0;border-radius:20px;padding:6px 12px;cursor:pointer}
+  .complete-chip:hover{background:#e3d8fb}
+  .complete-more{font-size:.76rem;color:var(--muted);align-self:center}
+  .complete-foot{font-size:.72rem;color:var(--muted);margin-top:9px;line-height:1.4}
+  .complete-done{font-size:.84rem;color:var(--ok);font-weight:600;margin-top:2px}
 
   /* ---- Dashboard: distribution donut + legend ---- */
   .dash-dist-wrap{display:flex;flex-direction:column;align-items:center;gap:16px}
@@ -291,19 +328,67 @@
   .bill{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
     border-radius:12px;padding:12px;margin-bottom:8px}
   .bill.paid{background:#f4faf4;border-color:#cfe8cf}
-  .bill .chk{width:26px;height:26px;flex:0 0 auto;border:2px solid var(--line);border-radius:7px;cursor:pointer;
-    background:#fff;display:flex;align-items:center;justify-content:center;font-size:1rem;color:#fff;padding:0}
+  .bill .chk{width:30px;height:30px;flex:0 0 auto;border:2px solid var(--line);border-radius:7px;cursor:pointer;
+    background:#fff;display:flex;align-items:center;justify-content:center;font-size:1.05rem;color:#fff;padding:0}
   .bill.paid .chk{background:var(--ok);border-color:var(--ok)}
   .bill .meta{flex:1;min-width:0}
   .bill .meta .cat{font-size:.64rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--primary)}
   .bill .meta .nm{font-weight:600}
   .bill.paid .meta .nm{text-decoration:line-through;opacity:.7}
   .bill .meta .bal{font-size:.72rem;color:var(--muted);margin-top:2px}
-  .bill .amtin{width:96px;text-align:right;padding:8px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:.86rem;flex:0 0 auto}
+  .bill .amtin{width:104px;text-align:right;padding:8px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:16px;flex:0 0 auto}
   .bill .amtin:disabled{background:#eef3ee;color:var(--ink);opacity:1}
-  .bill .del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1rem;flex:0 0 auto}
+  .bill .del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1rem;flex:0 0 auto;padding:6px;border-radius:8px;line-height:1}
   .dash-bills-row{display:flex;justify-content:space-between;font-size:.86rem;padding:4px 0}
   .dash-bills-row .muted{color:var(--muted)}
+
+  /* ---- Scenario comparison (before vs after hibah) ---- */
+  .modal.wide{max-width:560px}
+  .sc-step{font-weight:600;font-size:.84rem;margin:14px 0 7px}
+  .sc-step:first-child{margin-top:4px}
+  .sc-assets{display:flex;flex-direction:column;gap:6px;max-height:190px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px}
+  .sc-chk{display:flex;align-items:center;gap:9px;font-size:.84rem;cursor:pointer;padding:4px 2px}
+  .sc-chk input{width:18px;height:18px;flex:0 0 auto}
+  .sc-chk span:nth-child(2){flex:1;min-width:0}
+  .sc-amt{font-weight:600;color:var(--muted);white-space:nowrap}
+  .sc-summary{background:var(--primary-soft);color:var(--primary-dark);border-radius:10px;padding:10px 12px;
+    font-size:.82rem;line-height:1.5;margin:16px 0 12px}
+  .sc-table{width:100%;border-collapse:collapse;font-size:.82rem}
+  .sc-table th,.sc-table td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line)}
+  .sc-table th:first-child,.sc-table td:first-child{text-align:left}
+  .sc-table th{font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+  .sc-table tr.sc-rec td{background:#eef7ee;font-weight:600}
+  .sc-table td.pos{color:var(--ok);font-weight:700}
+  .sc-table td.neg{color:#c62828;font-weight:700}
+  .sc-note{font-size:.72rem;color:var(--muted);line-height:1.45;margin:12px 0 0}
+
+  /* ---- Print / PDF report (dependency-free: window.print(), no library) ---- */
+  #printReport{display:none}
+  @media print{
+    body{background:#fff;color:#000;margin:0}
+    body > *{display:none !important}
+    #printReport{display:block !important;color:#000;font-size:12px;
+      font-family:'Segoe UI',Roboto,system-ui,-apple-system,sans-serif;padding:0}
+    @page{margin:14mm}
+    #printReport .pr-head{border-bottom:2px solid #333;padding-bottom:8px;margin-bottom:14px}
+    #printReport .pr-title{font-size:18px;font-weight:700}
+    #printReport .pr-sub{font-size:11px;color:#444;margin-top:2px}
+    #printReport .pr-section{margin:0 0 14px;page-break-inside:avoid}
+    #printReport h2{font-size:13px;margin:0 0 6px;border-bottom:1px solid #ccc;padding-bottom:3px}
+    #printReport table{width:100%;border-collapse:collapse;font-size:11px}
+    #printReport .pr-kv td{padding:3px 4px}
+    #printReport .pr-kv td:last-child{text-align:right;white-space:nowrap}
+    #printReport .pr-kv .pr-strong td{font-weight:700;border-top:1px solid #999}
+    #printReport .pr-dist th,#printReport .pr-dist td{border:1px solid #bbb;padding:4px 5px;text-align:left;vertical-align:top}
+    #printReport .pr-dist th{background:#eee}
+    #printReport .pr-dist td:nth-child(2),#printReport .pr-dist td:nth-child(4){text-align:right;white-space:nowrap}
+    #printReport .pr-dist td:nth-child(5){text-align:right;white-space:nowrap}
+    #printReport .pr-base{font-size:10px;color:#444;margin:5px 0 0}
+    #printReport .pr-blocked{font-size:10px;margin-top:8px}
+    #printReport .pr-blocked ul,#printReport .pr-list{margin:4px 0;padding-left:18px}
+    #printReport .pr-empty{font-size:11px;color:#444}
+    #printReport .pr-disclaimer{font-size:9.5px;color:#333;border-top:1px solid #999;padding-top:8px;margin-top:14px;line-height:1.45}
+  }
 </style>
 </head>
 <body>
@@ -317,8 +402,11 @@
 <section id="view-dashboard" class="view">
   <header class="appbar">
     <h1>☪ Kalkulator Faraid</h1>
+    <button id="privacyBtn" class="icon" aria-pressed="false" title="Mod Privasi">🔓</button>
+    <button id="printBtn" title="Cetak atau simpan sebagai PDF">🖨 PDF</button>
   </header>
   <main>
+    <div id="privacyBanner" class="privacy-banner" style="display:none"></div>
     <div id="seedBannerDash"></div>
     <div class="hero">
       <div class="hero-top">
@@ -331,6 +419,7 @@
     </div>
 
     <div id="dashInsight" class="insight-row"></div>
+    <div id="dashComplete"></div>
 
     <div class="section-title with-add">
       <span>Agihan Pusaka</span>
@@ -343,6 +432,7 @@
       </div>
       <div id="dashBase" class="basebar" style="display:none"></div>
     </div>
+    <button class="btn ghost block" id="compareBtn" style="margin-top:10px">⚖️ Bandingkan: Sebelum vs Selepas Hibah</button>
 
     <div class="section-title with-add" style="margin-top:22px">
       <span>Bil Bulanan</span>
@@ -383,13 +473,14 @@
       </div>
       <div class="result-col">
         <div class="section-title">Bahagian Faraid</div>
+        <p class="trust-line">⚖️ Pembahagian wajib (<em>fardhu</em>) mengikut Al-Quran, Sunnah &amp; amalan mazhab Syafi'i.</p>
         <div class="panel">
           <div class="pie-wrap">
             <div id="pie" class="pie empty">Belum ada waris dipilih</div>
             <div id="legend" class="legend"></div>
           </div>
+          <div id="blocked" class="blocked-list"></div>
           <div id="notes" class="notes"></div>
-          <div id="faraidNudge"></div>
           <div id="basebar" class="basebar" style="display:none"></div>
         </div>
         <p class="disclaimer">
@@ -404,6 +495,7 @@
             </ul>
           </details>
         </p>
+        <div id="faraidNudge"></div>
       </div>
     </div>
   </main>
@@ -623,6 +715,20 @@
   </div>
 </div>
 
+<!-- Scenario comparison: before vs after hibah -->
+<div id="scenarioModal" class="modal-bg">
+  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="scTitle">
+    <button class="modal-close" id="scCloseX" aria-label="Tutup">×</button>
+    <h3 id="scTitle">⚖️ Sebelum vs Selepas Hibah</h3>
+    <p class="hint">Lihat kesan jika aset tertentu dihibahkan kepada penerima pilihan — aset itu keluar daripada pembahagian faraid dan diberi terus kepada penerima.</p>
+    <div id="scBody"></div>
+    <div class="actions"><button class="btn ghost block" id="scClose">Tutup</button></div>
+  </div>
+</div>
+
+<!-- Print/PDF report: hidden on screen, the only thing shown by @media print -->
+<div id="printReport" aria-hidden="true"></div>
+
 <script>
 "use strict";
 
@@ -700,6 +806,8 @@ function solveFaraid(sel){
   const cnt=id=>(sel[id]||0);
   const notes=[];
   const shares={};                       // id -> Fr (fraction of whole estate)
+  const reasons={};                      // id -> short Malay "Sebab" string (per-heir explainability)
+  const why=(id,txt)=>{ reasons[id]=txt; };
   let baitulmal=ZERO;                    // declared early: Umariyyatān path returns before Phase C
 
   /* ---- Phase A: blocking (hijab) for furud heirs ---- */
@@ -737,6 +845,19 @@ function solveFaraid(sel){
   const hasSiblings = effBk||effSk||effBt||effSt;
   const sibCountAll = cnt('ss')+cnt('bk')+cnt('sk')+cnt('bt')+cnt('st'); // counts even if mahjub (affects mother)
 
+  /* ---- Per-heir "Sebab" for selected heirs that end up blocked (mahjub) ---- */
+  const sibBlocker = has('b')?'Bapa':(has('al')?'Anak Lelaki':'Cucu Lelaki');
+  if(has('d')  && blocked.d)   why('d',  'Terhalang (mahjub) oleh Bapa.');
+  if(has('nsb')&& blocked.nsb) why('nsb','Terhalang oleh '+(has('b')&&has('i')?'Bapa & Ibu':(has('b')?'Bapa':'Ibu'))+'.');
+  if(has('nsi')&& blocked.nsi) why('nsi','Terhalang oleh Ibu.');
+  if(has('cl') && blocked.cl)  why('cl', 'Terhalang oleh Anak Lelaki.');
+  if(has('cp') && blocked.cp)  why('cp', has('al')?'Terhalang oleh Anak Lelaki.':'Terhalang oleh dua atau lebih Anak Perempuan (tiada cucu lelaki).');
+  if(has('ss') && blocked.ss)  why('ss', 'Terhalang oleh '+(hasDesc?'keturunan':(has('b')?'Bapa':'Datuk'))+'.');
+  if(has('bk') && blocked.bk)  why('bk', 'Terhalang oleh '+sibBlocker+'.');
+  if(has('sk') && blocked.sk)  why('sk', 'Terhalang oleh '+sibBlocker+'.');
+  if(has('bt') && blocked.bt)  why('bt', 'Terhalang oleh waris yang lebih utama (Bapa / Anak/Cucu Lelaki / adik-beradik kandung).');
+  if(has('st') && blocked.st)  why('st', 'Terhalang oleh waris yang lebih utama.');
+
   /* ---- Special case: Umariyyatān (spouse + mother + father only) ---- */
   const selectedIds=HEIRS.map(h=>h.id).filter(has);
   const spouse = has('s')?'s':(has('is')?'is':null);
@@ -746,40 +867,50 @@ function solveFaraid(sel){
     const rem=fs(ONE,sp);
     shares.i=fd(rem,F(3,1));               // mother: 1/3 of remainder
     shares.b=fs(rem,shares.i);             // father: rest
+    why(spouse, spouse==='s'?'Tiada keturunan → 1/2 (kes Umariyyatān).':'Tiada keturunan → 1/4 (kes Umariyyatān).');
+    why('i','1/3 daripada baki selepas bahagian pasangan (kes Umariyyatān).');
+    why('b','Baki selepas pasangan & ibu sebagai asabah (kes Umariyyatān).');
     notes.push("Kes Umariyyatān/Gharrāwain — ibu mendapat 1/3 daripada baki selepas bahagian pasangan.");
     return finalize();
   }
 
   /* ---- Phase B: assign furud (fixed shares) ---- */
-  if(has('s'))  shares.s  = hasDesc?F(1,4):F(1,2);
-  if(has('is')) shares.is = hasDesc?F(1,8):F(1,4);          // total for all wives
-  if(has('i'))  shares.i  = (hasDesc||sibCountAll>=2)?F(1,6):F(1,3);
+  if(has('s')) { shares.s  = hasDesc?F(1,4):F(1,2); why('s', hasDesc?'Ada keturunan → 1/4.':'Tiada keturunan → 1/2.'); }
+  if(has('is')){ shares.is = hasDesc?F(1,8):F(1,4); why('is', hasDesc?'Ada keturunan → 1/8 (dikongsi semua isteri).':'Tiada keturunan → 1/4 (dikongsi semua isteri).'); }   // total for all wives
+  if(has('i')) { shares.i  = (hasDesc||sibCountAll>=2)?F(1,6):F(1,3);
+                 why('i', hasDesc?'Ada keturunan → 1/6.':(sibCountAll>=2?'Dua atau lebih adik-beradik → 1/6.':'Tiada keturunan & kurang dua adik-beradik → 1/3.')); }
 
   const gm=(inhNsb?1:0)+(inhNsi?1:0);
-  if(inhNsb) shares.nsb=F(1,6*gm);                          // grandmothers share 1/6
-  if(inhNsi) shares.nsi=F(1,6*gm);
+  if(inhNsb){ shares.nsb=F(1,6*gm); why('nsb', gm>1?'Nenek menerima 1/6 (dikongsi dua nenek).':'Nenek menerima 1/6.'); }   // grandmothers share 1/6
+  if(inhNsi){ shares.nsi=F(1,6*gm); why('nsi', gm>1?'Nenek menerima 1/6 (dikongsi dua nenek).':'Nenek menerima 1/6.'); }
 
-  if(!has('al') && has('ap')) shares.ap = cnt('ap')>=2?F(2,3):F(1,2);
+  if(!has('al') && has('ap')){ shares.ap = cnt('ap')>=2?F(2,3):F(1,2);
+    why('ap', cnt('ap')>=2?'Dua atau lebih anak perempuan, tiada anak lelaki → 2/3 (dikongsi).':'Seorang anak perempuan, tiada anak lelaki → 1/2.'); }
 
   if(effCp && !effCl){                                      // granddaughter as furud
-    if(has('ap')){ if(cnt('ap')===1) shares.cp=F(1,6); }    // completes 2/3 with one daughter
-    else shares.cp = cnt('cp')>=2?F(2,3):F(1,2);
+    if(has('ap')){ if(cnt('ap')===1){ shares.cp=F(1,6); why('cp','Melengkapkan 2/3 bersama anak perempuan → 1/6.'); } }   // completes 2/3 with one daughter
+    else { shares.cp = cnt('cp')>=2?F(2,3):F(1,2);
+      why('cp', cnt('cp')>=2?'Dua atau lebih cucu perempuan, tiada anak → 2/3 (dikongsi).':'Seorang cucu perempuan, tiada anak → 1/2.'); }
   }
-  if(effSs) shares.ss = cnt('ss')>=2?F(1,3):F(1,6);
+  if(effSs){ shares.ss = cnt('ss')>=2?F(1,3):F(1,6);
+    why('ss', cnt('ss')>=2?'Dua atau lebih adik-beradik seibu → 1/3 (dikongsi sama rata).':'Seorang adik-beradik seibu → 1/6.'); }
 
-  if(effSk && !effBk && !fullSisResiduary)
+  if(effSk && !effBk && !fullSisResiduary){
     shares.sk = cnt('sk')>=2?F(2,3):F(1,2);
+    why('sk', cnt('sk')>=2?'Dua atau lebih, tiada keturunan/bapa → 2/3 (dikongsi).':'Seorang, tiada keturunan/bapa → 1/2.');
+  }
 
   if(effSt && !effBt && !consSisResiduary){
     if(effSk && !effBk && !fullSisResiduary){
-      if(cnt('sk')===1) shares.st=F(1,6);                   // complete 2/3 with one full sister
+      if(cnt('sk')===1){ shares.st=F(1,6); why('st','Melengkapkan 2/3 bersama adik-beradik perempuan kandung → 1/6.'); }   // complete 2/3 with one full sister
     } else {
       shares.st = cnt('st')>=2?F(2,3):F(1,2);
+      why('st', cnt('st')>=2?'Dua atau lebih (sebapa), tiada keturunan/bapa/adik-beradik kandung → 2/3.':'Seorang (sebapa), tiada keturunan/bapa/adik-beradik kandung → 1/2.');
     }
   }
 
-  if(has('b')){ if(hasDesc) shares.b=F(1,6); }              // father 1/6 when descendant (else pure asabah)
-  else if(effD){ if(hasDesc && !hasSiblings) shares.d=F(1,6); }
+  if(has('b')){ if(hasDesc){ shares.b=F(1,6); why('b','Ada keturunan → 1/6 (fardu).'); } }   // father 1/6 when descendant (else pure asabah)
+  else if(effD){ if(hasDesc && !hasSiblings){ shares.d=F(1,6); why('d','Ada keturunan → 1/6 (fardu).'); } }
 
   /* ---- Phase C: 'aul / asabah / radd ---- */
   let sumF=Object.keys(shares).reduce((a,k)=>fa(a,shares[k]),ZERO);
@@ -797,7 +928,7 @@ function solveFaraid(sel){
       const nonSp=Object.keys(shares).filter(k=>k!=='s'&&k!=='is');
       const sumNon=nonSp.reduce((a,k)=>fa(a,shares[k]),ZERO);
       if(!fzero(sumNon)){
-        nonSp.forEach(k=>shares[k]=fa(shares[k],fm(residue,fd(shares[k],sumNon))));
+        nonSp.forEach(k=>{ shares[k]=fa(shares[k],fm(residue,fd(shares[k],sumNon))); why(k,(reasons[k]?reasons[k]+' ':'')+'Lebihan dikembalikan (radd).'); });
         notes.push("Kes Radd — lebihan dikembalikan kepada waris (pasangan tidak menerima radd).");
       } else {
         baitulmal=residue;
@@ -811,8 +942,8 @@ function solveFaraid(sel){
   function dist2to1(maleIds,femaleIds,R){
     let M=0,Fh=0; maleIds.forEach(i=>M+=cnt(i)); femaleIds.forEach(i=>Fh+=cnt(i));
     const u=2*M+Fh;
-    maleIds.forEach(i=>shares[i]=fm(R,F(2*cnt(i),u)));
-    femaleIds.forEach(i=>shares[i]=fm(R,F(cnt(i),u)));
+    maleIds.forEach(i=>{ shares[i]=fm(R,F(2*cnt(i),u)); why(i, Fh>0?'Baki secara asabah (lelaki 2 : perempuan 1).':'Baki secara asabah.'); });
+    femaleIds.forEach(i=>{ shares[i]=fm(R,F(cnt(i),u)); why(i,'Baki secara asabah bersama waris lelaki (2 : 1).'); });
   }
   function distEqual(ids,R){
     let N=0; ids.forEach(i=>N+=cnt(i));
@@ -830,31 +961,32 @@ function solveFaraid(sel){
     if(fcmp(sixth,gf)>0) gf=sixth;
     if(fcmp(gf,R)>0) gf=R;
     shares.d=fa(shares.d||ZERO,gf);
+    why('d','Datuk berkongsi dengan adik-beradik (muqasamah / 1/3 baki / 1/6 — yang terbaik untuk datuk).');
     const rem=fs(R,gf), u=2*m+f;
-    if(u>0){ if(m>0)shares[bro]=fm(rem,F(2*m,u)); if(f>0)shares[sis]=fm(rem,F(f,u)); }
+    if(u>0){ if(m>0){shares[bro]=fm(rem,F(2*m,u)); why(bro,'Baki bersama datuk secara muqasamah.');} if(f>0){shares[sis]=fm(rem,F(f,u)); why(sis,'Baki bersama datuk secara muqasamah.');} }
     else shares.d=fa(shares.d,rem);
     notes.push("Datuk berkongsi dengan adik-beradik (muqasamah / 1/3 baki / 1/6 — mana lebih baik untuk datuk).");
   }
   function applyMushtaraka(){
     const u=shares.ss;
     const heads=cnt('ss')+cnt('bk')+(effSk?cnt('sk'):0);
-    shares.ss=fm(u,F(cnt('ss'),heads));
-    shares.bk=fm(u,F(cnt('bk'),heads));
-    if(effSk) shares.sk=fm(u,F(cnt('sk'),heads));
+    shares.ss=fm(u,F(cnt('ss'),heads)); why('ss','Berkongsi 1/3 sama rata (kes Musytarakah).');
+    shares.bk=fm(u,F(cnt('bk'),heads)); why('bk','Berkongsi 1/3 dengan adik-beradik seibu (kes Musytarakah).');
+    if(effSk){ shares.sk=fm(u,F(cnt('sk'),heads)); why('sk','Berkongsi 1/3 dengan adik-beradik seibu (kes Musytarakah).'); }
     notes.push("Kes Musytarakah — adik-beradik kandung berkongsi bahagian 1/3 dengan adik-beradik seibu.");
   }
   function assignAsabah(R){
     if(has('al')){ dist2to1(['al'], has('ap')?['ap']:[], R); return true; }
     if(effCl){ dist2to1(['cl'], effCp?['cp']:[], R); return true; }
-    if(has('b')){ shares.b=fa(shares.b||ZERO,R); return true; }
+    if(has('b')){ shares.b=fa(shares.b||ZERO,R); why('b', reasons.b?'Ada keturunan → 1/6 (fardu) + baki secara asabah.':'Bapa sebagai asabah — seluruh baki.'); return true; }
     if(effD && hasSiblings){ gfSiblings(R); return true; }
-    if(effD){ shares.d=fa(shares.d||ZERO,R); return true; }
+    if(effD){ shares.d=fa(shares.d||ZERO,R); why('d', reasons.d?'1/6 (fardu) + baki secara asabah.':'Datuk sebagai asabah — seluruh baki.'); return true; }
     if(effBk){ dist2to1(['bk'], effSk?['sk']:[], R); return true; }
-    if(fullSisResiduary){ distEqual(['sk'], R); return true; }
+    if(fullSisResiduary){ distEqual(['sk'], R); why('sk','Asabah ma\'al-ghair — baki bersama anak/cucu perempuan.'); return true; }
     if(effBt){ dist2to1(['bt'], effSt?['st']:[], R); return true; }
-    if(consSisResiduary){ distEqual(['st'], R); return true; }
-    for(const id of ['nk','nt']){ if(has(id)){ distEqual([id],R); return true; } }
-    for(const id of ['uk','ut','ck','ct']){ if(has(id)){ shares[id]=R; return true; } }
+    if(consSisResiduary){ distEqual(['st'], R); why('st','Asabah ma\'al-ghair (sebapa) — baki bersama anak/cucu perempuan.'); return true; }
+    for(const id of ['nk','nt']){ if(has(id)){ distEqual([id],R); why(id,'Baki secara asabah (anak buah).'); return true; } }
+    for(const id of ['uk','ut','ck','ct']){ if(has(id)){ shares[id]=R; why(id,'Baki secara asabah.'); return true; } }
     return false;
   }
   function finalize(){
@@ -868,13 +1000,16 @@ function solveFaraid(sel){
       if(sh && !fzero(sh)){
         const c=cnt(h.id)||1;
         rows.push({id:h.id,label:h.label,count:c,frac:sh,perHead:fd(sh,F(c,1)),
-                   percent:fval(sh)*100, siham:sh.n*(base/sh.d)});
+                   percent:fval(sh)*100, siham:sh.n*(base/sh.d), reason:reasons[h.id]||''});
       }
     });
     const bRow = fzero(baitulmal)?null:
-      {id:'baitulmal',label:'Baitulmal',count:1,frac:baitulmal,percent:fval(baitulmal)*100,siham:baitulmal.n*(base/baitulmal.d)};
+      {id:'baitulmal',label:'Baitulmal',count:1,frac:baitulmal,percent:fval(baitulmal)*100,siham:baitulmal.n*(base/baitulmal.d),
+       reason:'Tiada waris asabah atau penerima radd — lebihan kepada Baitulmal.'};
     const blockedIds=HEIRS.filter(h=>(sel[h.id]>0)&&(!shares[h.id]||fzero(shares[h.id]))).map(h=>h.id);
-    return {rows,baitulmal:bRow,base,notes,blocked:blockedIds};
+    const blockedRows=blockedIds.map(id=>({id,label:HEIR_LABEL[id],count:cnt(id),
+      reason:reasons[id]||'Tidak menerima — waris lain lebih utama (mahjub).'}));
+    return {rows,baitulmal:bRow,base,notes,blocked:blockedIds,reasons,blockedRows};
   }
 }
 
@@ -948,6 +1083,8 @@ function rank(triggers){
    STATE + persistence (localStorage ~ Hive box 'faraid')
    ============================================================ */
 const STORE_KEY='faraid_web_state';
+const PRIV_KEY='faraid_private_mode';
+let privateMode=false;            // when true, estate data is never persisted (shared-device / roadshow mode)
 let state={sel:{}, assets:[], loans:[], bills:[], billLog:{}};
 
 function uid(){ return 'x'+Math.random().toString(36).slice(2,9); }
@@ -995,14 +1132,50 @@ function seedDefaults(){
   exampleData=true;
 }
 function load(){
+  try{ privateMode = localStorage.getItem(PRIV_KEY)==='1'; }catch(e){}
+  if(privateMode){ seedDefaults(); ensureIds(); return; } // private: never read a saved estate; fresh each session
   try{
     const r=localStorage.getItem(STORE_KEY);
     if(r){ state=Object.assign(state,JSON.parse(r)); if(!state.bills)state.bills=[]; if(!state.billLog)state.billLog={}; ensureIds(); return; }
   }catch(e){ return; }
   seedDefaults(); ensureIds(); // no stored state yet → first run
 }
-function save(){ exampleData=false; try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){} }
+function save(){ exampleData=false; if(privateMode) return; try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){} }
 function clearExample(){ state={sel:{},assets:[],loans:[],bills:[],billLog:{}}; save(); showView('dashboard'); }
+
+/* ---- Private mode: keep the estate in memory only (shared devices / roadshows) ---- */
+function setPrivateMode(on){
+  privateMode=on;
+  try{ if(on) localStorage.setItem(PRIV_KEY,'1'); else localStorage.removeItem(PRIV_KEY); }catch(e){}
+  if(on){ try{ localStorage.removeItem(STORE_KEY); }catch(e){} }  // wipe any estate already saved on this device
+  else { save(); }                                                // resume persistence with the current in-memory estate
+  renderPrivacyBanner();
+}
+function togglePrivate(){
+  if(privateMode){ setPrivateMode(false); return; }
+  if(confirm('Aktifkan Mod Privasi?\n\nData harta yang tersimpan pada peranti ini akan dipadam, dan maklumat baharu TIDAK akan disimpan — ia hilang apabila pelayar ditutup. Sesuai untuk peranti berkongsi atau roadshow.'))
+    setPrivateMode(true);
+}
+function privacyClearNow(){
+  if(!confirm('Kosongkan semua maklumat dan mula semula?')) return;
+  state={sel:{},assets:[],loans:[],bills:[],billLog:{}}; exampleData=false;
+  save(); renderDashboard();
+}
+function renderPrivacyBanner(){
+  const btn=document.getElementById('privacyBtn');
+  if(btn){
+    btn.textContent=privateMode?'🔒':'🔓';
+    btn.setAttribute('aria-pressed',privateMode?'true':'false');
+    btn.title=privateMode?'Mod Privasi: AKTIF — data tidak disimpan pada peranti':'Mod Privasi: tutup — data disimpan pada peranti';
+  }
+  const el=document.getElementById('privacyBanner'); if(!el) return;
+  if(!privateMode){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='flex';
+  el.innerHTML=`<span class="pb-ic">🔒</span>
+    <span class="pb-tx">Mod Privasi aktif — maklumat harta <strong>tidak disimpan</strong> pada peranti ini; ia hilang apabila pelayar ditutup.</span>
+    <button class="pb-clear" id="privClear">Kosongkan sekarang</button>`;
+  const c=document.getElementById('privClear'); if(c) c.onclick=privacyClearNow;
+}
 
 /* ============================================================
    FARAID VIEW rendering
@@ -1084,8 +1257,9 @@ function renderResult(res){
   const pie=document.getElementById('pie');
   const legend=document.getElementById('legend');
   const notes=document.getElementById('notes');
+  const blocked=document.getElementById('blocked');
   const basebar=document.getElementById('basebar');
-  legend.innerHTML=''; notes.innerHTML='';
+  legend.innerHTML=''; notes.innerHTML=''; if(blocked) blocked.innerHTML='';
   const all=res.rows.slice(); if(res.baitulmal) all.push(res.baitulmal);
 
   if(res.rows.length===0){           // nothing selected yet → empty state, not "Baitulmal 100%"
@@ -1108,11 +1282,22 @@ function renderResult(res){
     const row=document.createElement('div'); row.className='row';
     let sub=`bahagian ${ffmt(r.frac)} • ${r.siham}/${res.base} sihm`;
     if(r.count>1) sub+=` • ${(r.percent/r.count).toFixed(2)}% seorang`;
+    const whyLine=r.reason?`<span class="why">Sebab: ${escapeHtml(r.reason)}</span>`:'';
     row.innerHTML=`<span class="sw" style="background:${c}"></span>
-      <span class="nm">${r.label}${r.count>1?` ×${r.count}`:''}<span class="sub">${sub}</span></span>
+      <span class="nm">${r.label}${r.count>1?` ×${r.count}`:''}<span class="sub">${sub}</span>${whyLine}</span>
       <span class="pct">${r.percent.toFixed(2)}%</span>`;
     legend.appendChild(row);
   });
+  // blocked (mahjub) heirs — show who inherits nothing and why (high-trust transparency)
+  if(blocked && res.blockedRows && res.blockedRows.length){
+    const t=document.createElement('div'); t.className='blocked-title'; t.textContent='Tidak menerima (terhalang)';
+    blocked.appendChild(t);
+    res.blockedRows.forEach(b=>{
+      const d=document.createElement('div'); d.className='brow';
+      d.innerHTML=`<b>${escapeHtml(b.label)}${b.count>1?` ×${b.count}`:''}</b> — ${escapeHtml(b.reason)}`;
+      blocked.appendChild(d);
+    });
+  }
   res.notes.forEach(n=>{ const d=document.createElement('div'); d.className='note'; d.textContent=n; notes.appendChild(d); });
   basebar.style.display='flex';
   basebar.innerHTML=`<span>Asal Masalah (asas)</span><span>${res.base}</span>`;
@@ -1241,6 +1426,7 @@ function renderSeedBanner(){
    ============================================================ */
 function renderDashboard(){
   renderSeedBanner();
+  renderPrivacyBanner();
   const gross=grossTotal(), debt=debtTotal(), net=netTotal();
   document.getElementById('dashNet').textContent=RM0.format(net);
   const sub=document.getElementById('dashNetSub');
@@ -1251,6 +1437,7 @@ function renderDashboard(){
   const sig=buildFunnelSignals();
   renderHealth(gross,debt,net,sig);
   renderDashInsight(sig);
+  renderDashCompleteness();
 
   // distribution: donut + legend + base
   const res=solveFaraid(state.sel);
@@ -1327,6 +1514,129 @@ function renderDashInsight(s){
   let top=chips.slice(0,2);
   if(top.length===0) top=[['ok','✓','Agihan lengkap kepada waris keluarga']];
   top.forEach(([sev,icon,txt])=>{ const c=document.createElement('span'); c.className='chip '+sev; c.textContent=`${icon} ${txt}`; el.appendChild(c); });
+}
+
+/* Estate-completeness meter — a documentation checklist that gamifies filling in the
+   estate so the faraid estimate & suggestions get more accurate. Each item is a
+   "have you captured X" signal derived from state (never a judgement: irrelevant
+   categories can be ignored, and hints say "jika ada"). Render-only, not in the engine. */
+function estateCompleteness(){
+  const sel = state.sel || {};
+  const assets = state.assets || [];
+  const loans = state.loans || [];
+  const types = new Set(assets.map(a=>a.type));
+  const has = (...t)=>t.some(x=>types.has(x));
+  const anyDebt = assets.some(a=>a.isLoan && (Number(a.loanAmount)||0)>0) || loans.length>0;
+  const items = [
+    {id:'heirs',    go:'faraid', label:'Waris dikenal pasti',          done: Object.keys(sel).some(k=>sel[k]>0),    hint:'Pilih waris di Kalkulator Faraid.'},
+    {id:'cash',     go:'assets', label:'Tunai & simpanan',             done: has('savings','current','fd','th'),     hint:'Tambah akaun simpanan / semasa / FD.'},
+    {id:'kwsp',     go:'assets', label:'KWSP (EPF)',                   done: has('kwsp'),                            hint:'Tambah baki KWSP — selalunya aset terbesar.'},
+    {id:'invest',   go:'assets', label:'Pelaburan (ASNB, Unit Trust, Saham)', done: has('asb','trust','stock','cds'), hint:'Tambah pelaburan jika ada.'},
+    {id:'property', go:'assets', label:'Hartanah',                     done: has('property'),                        hint:'Tambah rumah / tanah jika ada.'},
+    {id:'takaful',  go:'assets', label:'Perlindungan Takaful/Insurans', done: has('life'),                          hint:'Tambah pelan takaful/insurans hayat.'},
+    {id:'debts',    go:'assets', label:'Hutang & liabiliti disemak',   done: anyDebt,                                hint:'Senaraikan hutang (jika ada) untuk anggaran tepat.'},
+  ];
+  const done = items.filter(i=>i.done).length;
+  return {pct: Math.round(done/items.length*100), done, total: items.length, items, missing: items.filter(i=>!i.done)};
+}
+function renderDashCompleteness(){
+  const el=document.getElementById('dashComplete'); if(!el) return;
+  const c=estateCompleteness();
+  const cls = c.pct>=100?'good':(c.pct>=50?'mid':'low');
+  let body;
+  if(c.pct>=100){
+    body='<div class="complete-done">✓ Lengkap — maklumat harta anda menyeluruh.</div>';
+  } else {
+    const chips=c.missing.slice(0,4).map(m=>
+      `<button class="complete-chip" data-go="${m.go}" title="${escapeHtml(m.hint)}">+ ${escapeHtml(m.label)}</button>`).join('');
+    const more=c.missing.length>4?`<span class="complete-more">+${c.missing.length-4} lagi</span>`:'';
+    body=`<div class="complete-missing">${chips}${more}</div>
+          <div class="complete-foot">Lengkapkan untuk anggaran &amp; cadangan lebih tepat. Item yang tidak berkaitan boleh diabaikan.</div>`;
+  }
+  el.innerHTML=
+    `<div class="complete-card ${cls}">
+       <div class="complete-head"><span class="complete-title">Kelengkapan Maklumat Harta</span><span class="complete-pct">${c.pct}%</span></div>
+       <div class="complete-bar"><span style="width:${c.pct}%"></span></div>
+       ${body}
+     </div>`;
+  el.querySelectorAll('.complete-chip').forEach(b=>b.onclick=()=>showView(b.dataset.go));
+}
+
+/* ---- Print / PDF report (built on demand, then window.print()) ---- */
+function printInsights(s){
+  const out=[];
+  if(s.noHeirs) return out;
+  if(s.baitulmalPct>0) out.push(`${s.baitulmalPct.toFixed(1)}% harta berisiko diserahkan kepada Baitulmal.`);
+  if(s.underwater) out.push('Hutang melebihi aset yang boleh dibahagi.');
+  else if(s.debtRatio>=0.5) out.push(`Hutang lebih kurang ${Math.round(s.debtRatio*100)}% daripada nilai aset.`);
+  if(s.hasSpouse && !s.hasDescendant) out.push('Tanpa anak, pasangan tidak mewarisi keseluruhan harta.');
+  if(s.hasDaughter && !s.hasMaleDescendant) out.push('Tanpa anak lelaki, sebahagian harta jatuh kepada waris asabah.');
+  if(s.uninsuredPropertyLoan) out.push('Pinjaman hartanah belum dilindungi (MRTT/MRTA).');
+  return out;
+}
+function buildPrintReport(){
+  const host=document.getElementById('printReport'); if(!host) return;
+  const res=solveFaraid(state.sel);
+  const sig=buildFunnelSignals();
+  const gross=grossTotal(), debt=debtTotal(), net=netTotal();
+  const comp=estateCompleteness();
+  const dateStr=new Date().toLocaleDateString('ms-MY',{day:'numeric',month:'long',year:'numeric'});
+
+  let html=`<div class="pr-head">
+      <div class="pr-title">Laporan Faraid &amp; Perancangan Harta</div>
+      <div class="pr-sub">☪ Kalkulator Faraid · ${escapeHtml(dateStr)}</div>
+    </div>`;
+
+  html+=`<div class="pr-section"><h2>Ringkasan Harta</h2><table class="pr-kv">
+      <tr><td>Jumlah aset</td><td>${RM0.format(gross)}</td></tr>
+      ${debt>0?`<tr><td>(−) Hutang ditolak (tanpa insurans)</td><td>−${RM0.format(debt)}</td></tr>`:''}
+      <tr class="pr-strong"><td>Harta bersih boleh dibahagi</td><td>${RM0.format(net)}</td></tr>
+      <tr><td>Kelengkapan maklumat harta</td><td>${comp.pct}%</td></tr>
+    </table></div>`;
+
+  html+=`<div class="pr-section"><h2>Agihan Faraid</h2>`;
+  if(res.rows.length===0){
+    html+=`<p class="pr-empty">Belum ada waris dipilih.</p>`;
+  } else {
+    const all=res.rows.slice(); if(res.baitulmal) all.push(res.baitulmal);
+    html+=`<table class="pr-dist"><thead><tr><th>Waris</th><th>Bil.</th><th>Bahagian</th><th>%</th><th>Jumlah (RM)</th><th>Sebab</th></tr></thead><tbody>`;
+    all.forEach(r=>{
+      const amt=(net>0 && r.frac)?RM0.format(fval(r.frac)*net):'—';
+      html+=`<tr><td>${escapeHtml(r.label)}${r.count>1?` ×${r.count}`:''}</td><td>${r.count||1}</td><td>${ffmt(r.frac)}</td><td>${r.percent.toFixed(2)}%</td><td>${amt}</td><td>${escapeHtml(r.reason||'')}</td></tr>`;
+    });
+    html+=`</tbody></table><p class="pr-base">Asal Masalah (asas): ${res.base}</p>`;
+    if(res.blockedRows && res.blockedRows.length){
+      html+=`<div class="pr-blocked"><strong>Tidak menerima (terhalang):</strong><ul>`;
+      res.blockedRows.forEach(b=>{ html+=`<li>${escapeHtml(b.label)}${b.count>1?` ×${b.count}`:''} — ${escapeHtml(b.reason)}</li>`; });
+      html+=`</ul></div>`;
+    }
+  }
+  html+=`</div>`;
+
+  const bullets=printInsights(sig);
+  if(bullets.length){
+    html+=`<div class="pr-section"><h2>Perkara Perlu Perhatian</h2><ul class="pr-list">`;
+    bullets.forEach(t=>html+=`<li>${escapeHtml(t)}</li>`);
+    html+=`</ul></div>`;
+  }
+
+  const rec=recommendProducts(sig);
+  if(rec && rec.primary && !sig.noHeirs){
+    const p=FUNNEL.products[rec.primary.product];
+    const top=rec.primary.triggers[0];
+    if(p){
+      const reason=top?FUNNEL_COPY[top.code](top.data):(p.tagline||'');
+      html+=`<div class="pr-section"><h2>Cadangan Perancangan Harta (pelengkap, bukan ganti faraid)</h2>
+        <p><strong>${escapeHtml(p.name)} — ${escapeHtml(p.brand)}</strong></p>
+        <p>${escapeHtml(reason)}</p></div>`;
+    }
+  }
+
+  html+=`<div class="pr-disclaimer">Pengiraan mengikut mazhab Syafi'i (amalan Malaysia), termasuk radd.
+    Laporan ini untuk anggaran &amp; pendidikan, <strong>bukan nasihat kewangan/syariah muktamad</strong>.
+    Untuk pembahagian rasmi sila rujuk Mahkamah Syariah / Amanah Raya / pakar faraid bertauliah.</div>`;
+
+  host.innerHTML=html;
 }
 
 /* ============================================================
@@ -1720,6 +2030,83 @@ document.getElementById('fmClose').onclick=closeFunnelModal;
 document.getElementById('fmCloseX').onclick=closeFunnelModal;
 funnelModal.addEventListener('click',e=>{ if(e.target===funnelModal) closeFunnelModal(); });
 
+/* ---- Scenario comparison: before vs after hibah (what-if; nothing persisted) ----
+   Hibah moves chosen assets out of the divisible estate to a recipient. The faraid
+   FRACTIONS are unchanged — only the RM total shrinks — and the recipient gets the
+   hibah'd assets' net value on top. Pure render-layer math (reuses solveFaraid + asset math). */
+const scenarioModal=document.getElementById('scenarioModal');
+let scenarioSel=new Set(), scenarioRecipient=null;
+function openScenario(){
+  const res=solveFaraid(state.sel);
+  const body=document.getElementById('scBody');
+  if(res.rows.length===0){
+    body.innerHTML='<div class="empty-state">Pilih waris di Kalkulator Faraid dahulu untuk membandingkan senario.</div>';
+    openOverlay(scenarioModal); return;
+  }
+  scenarioSel=new Set();
+  const heirIds=Object.keys(state.sel).filter(k=>state.sel[k]>0);
+  scenarioRecipient = state.sel.is>0?'is':(state.sel.s>0?'s':(heirIds[0]||'other'));
+  const assets=state.assets||[];
+  const aHtml = assets.length
+    ? assets.map((a,i)=>`<label class="sc-chk"><input type="checkbox" data-i="${i}"> <span>${escapeHtml(a.label||ASSET_NAME[a.type]||'Aset')}</span><span class="sc-amt">${RM0.format(Number(a.amount)||0)}</span></label>`).join('')
+    : '<div class="empty-state" style="padding:14px">Tiada aset untuk dihibahkan. Tambah aset dahulu di Senarai Aset.</div>';
+  const opts = heirIds.map(id=>`<option value="${id}"${id===scenarioRecipient?' selected':''}>${escapeHtml(HEIR_LABEL[id]||id)}</option>`).join('')
+    + `<option value="other"${scenarioRecipient==='other'?' selected':''}>Orang lain (bukan waris)</option>`;
+  body.innerHTML=
+    `<div class="sc-step">1. Pilih aset untuk dihibahkan</div>
+     <div class="sc-assets">${aHtml}</div>
+     <div class="sc-step">2. Penerima hibah</div>
+     <select id="scRecipient" class="sortsel" style="width:100%">${opts}</select>
+     <div id="scResult"></div>`;
+  body.querySelectorAll('.sc-assets input[type=checkbox]').forEach(c=>c.onchange=()=>{
+    const i=Number(c.dataset.i); if(c.checked) scenarioSel.add(i); else scenarioSel.delete(i); renderScenarioResult();
+  });
+  const rsel=document.getElementById('scRecipient');
+  if(rsel) rsel.onchange=()=>{ scenarioRecipient=rsel.value; renderScenarioResult(); };
+  renderScenarioResult();
+  openOverlay(scenarioModal);
+}
+function renderScenarioResult(){
+  const el=document.getElementById('scResult'); if(!el) return;
+  const res=solveFaraid(state.sel);
+  const assets=state.assets||[];
+  const beforeNet=netTotal();
+  let hibahAmt=0, hibahDed=0;
+  scenarioSel.forEach(i=>{ const a=assets[i]; if(a){ hibahAmt+=Number(a.amount)||0; hibahDed+=loanDeduction(a); } });
+  const afterNet=Math.max(0,(grossTotal()-hibahAmt)-(debtTotal()-hibahDed));
+  const hibahReceived=Math.max(0, hibahAmt-hibahDed);
+  const rec=scenarioRecipient;
+  const all=res.rows.slice(); if(res.baitulmal) all.push(res.baitulmal);
+  const parties=[]; let recInRows=false;
+  all.forEach(r=>{
+    const before=fval(r.frac)*beforeNet;
+    let after=fval(r.frac)*afterNet;
+    const isRec=r.id===rec; if(isRec){ after+=hibahReceived; recInRows=true; }
+    parties.push({label:r.label,count:r.count,before,after,isRec});
+  });
+  if(!recInRows && hibahReceived>0){
+    const label = rec==='other'?'Penerima Hibah (bukan waris)':(HEIR_LABEL[rec]||'Penerima');
+    parties.push({label,count:state.sel[rec]||1,before:0,after:hibahReceived,isRec:true});
+  }
+  const recLabel = rec==='other'?'penerima bukan waris':(HEIR_LABEL[rec]||'penerima');
+  let html=`<div class="sc-summary">Harta boleh dibahagi: <strong>${RM0.format(beforeNet)}</strong> → <strong>${RM0.format(afterNet)}</strong>`;
+  if(hibahReceived>0) html+=`<br>Hibah kepada ${escapeHtml(recLabel)}: <strong>${RM0.format(hibahReceived)}</strong> (di luar faraid)`;
+  html+=`</div>`;
+  html+=`<table class="sc-table"><thead><tr><th>Penerima</th><th>Sebelum</th><th>Selepas</th><th>Δ</th></tr></thead><tbody>`;
+  parties.forEach(p=>{
+    const d=Math.round(p.after-p.before);
+    const ds = d===0?'—':((d>0?'+':'')+RM0.format(d));
+    html+=`<tr class="${p.isRec?'sc-rec':''}"><td>${escapeHtml(p.label)}${p.count>1?` ×${p.count}`:''}</td><td>${RM0.format(p.before)}</td><td>${RM0.format(p.after)}</td><td class="${d>0?'pos':(d<0?'neg':'')}">${ds}</td></tr>`;
+  });
+  html+=`</tbody></table>`;
+  html+=`<p class="sc-note">Anggaran sahaja. Hibah perlu dibuat secara sah melalui instrumen yang diiktiraf (cth. Hibah Amanah). Aset bercagar lazimnya dipindah bersama baki hutangnya.</p>`;
+  el.innerHTML=html;
+}
+function closeScenario(){ closeOverlay(scenarioModal); }
+document.getElementById('scClose').onclick=closeScenario;
+document.getElementById('scCloseX').onclick=closeScenario;
+scenarioModal.addEventListener('click',e=>{ if(e.target===scenarioModal) closeScenario(); });
+
 /* ---- slim contextual nudge on the faraid result panel ---- */
 function renderFaraidNudge(){
   const el=document.getElementById('faraidNudge'); if(!el) return;
@@ -1746,7 +2133,7 @@ function openOverlay(el){ _modalReturn=document.activeElement; el.classList.add(
 function closeOverlay(el){ el.classList.remove('open'); if(_modalReturn&&_modalReturn.focus){ try{_modalReturn.focus();}catch(e){} } _modalReturn=null; }
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape') return;
-  ['modal','loanModal','funnelModal','billModal'].forEach(id=>{
+  ['modal','loanModal','funnelModal','billModal','scenarioModal'].forEach(id=>{
     const el=document.getElementById(id);
     if(el&&el.classList.contains('open')) closeOverlay(el);
   });
@@ -1959,12 +2346,18 @@ document.getElementById('backDashFaraid').onclick=()=>showView('dashboard');
 document.getElementById('backDashAssets').onclick=()=>showView('dashboard');
 document.getElementById('toAssets').onclick=()=>showView('assets');
 document.getElementById('addAssetBtn').onclick=openModal;
+document.getElementById('printBtn').onclick=()=>{ buildPrintReport(); window.print(); };
+document.getElementById('privacyBtn').onclick=togglePrivate;
+document.getElementById('compareBtn').onclick=openScenario;
+// also handle the browser's native print (Ctrl/Cmd+P) so the report is never blank
+window.addEventListener('beforeprint', buildPrintReport);
 document.getElementById('resetBtn').onclick=()=>{
   if(confirm('Set semula pilihan waris?')){ state.sel={}; save(); renderFaraid(); }
 };
 
 /* ---- boot (brief splash -> initial view) ---- */
 load();
+renderPrivacyBanner();
 enhanceSwitches();
 renderFaraid();
 window.addEventListener('load',()=>{
