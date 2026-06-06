@@ -107,7 +107,8 @@
   .asset .meta .tag.ins{color:var(--ok)}
   .asset .amt .strike{text-decoration:line-through;opacity:.5;font-weight:400;font-size:.82rem;margin-right:4px}
   .asset .amt{font-weight:700;white-space:nowrap}
-  .asset .del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:6px;border-radius:8px;line-height:1}
+  .asset .del,.asset .edit{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:6px;border-radius:8px;line-height:1}
+  .asset .del:hover,.asset .edit:hover{background:#f3f1f8}
   .asset.debt .type{background:#fdecec;color:#c62828}
   .asset.debt .amt{color:#c62828}
   .empty-state{text-align:center;color:var(--muted);padding:30px 10px;font-size:.9rem}
@@ -338,19 +339,30 @@
   .bill .meta .bal{font-size:.72rem;color:var(--muted);margin-top:2px}
   .bill .amtin{width:104px;text-align:right;padding:8px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:16px;flex:0 0 auto}
   .bill .amtin:disabled{background:#eef3ee;color:var(--ink);opacity:1}
-  .bill .del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1rem;flex:0 0 auto;padding:6px;border-radius:8px;line-height:1}
+  .bill .del,.bill .edit{background:none;border:0;color:var(--muted);cursor:pointer;font-size:1rem;flex:0 0 auto;padding:6px;border-radius:8px;line-height:1}
+  .bill .del:hover,.bill .edit:hover{background:#eef3ee}
   .dash-bills-row{display:flex;justify-content:space-between;font-size:.86rem;padding:4px 0}
   .dash-bills-row .muted{color:var(--muted)}
 
   /* ---- Scenario comparison (before vs after hibah) ---- */
   .modal.wide{max-width:560px}
-  .sc-step{font-weight:600;font-size:.84rem;margin:14px 0 7px}
-  .sc-step:first-child{margin-top:4px}
-  .sc-assets{display:flex;flex-direction:column;gap:6px;max-height:190px;overflow:auto;border:1px solid var(--line);border-radius:10px;padding:8px}
-  .sc-chk{display:flex;align-items:center;gap:9px;font-size:.84rem;cursor:pointer;padding:4px 2px}
-  .sc-chk input{width:18px;height:18px;flex:0 0 auto}
-  .sc-chk span:nth-child(2){flex:1;min-width:0}
+  .sc-step{font-weight:600;font-size:.84rem;margin:6px 0 8px}
+  .sc-assets{display:flex;flex-direction:column;gap:8px;max-height:300px;overflow:auto;padding-right:2px}
+  .sc-asset{border:1px solid var(--line);border-radius:10px;padding:10px}
+  .sc-asset-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+  .sc-asset-nm{font-weight:600;font-size:.86rem}
   .sc-amt{font-weight:600;color:var(--muted);white-space:nowrap}
+  .sc-method{font-size:.74rem;color:var(--muted);line-height:1.4;margin:6px 0 9px;display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}
+  .sc-via{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:2px 7px;border-radius:20px;white-space:nowrap;flex:0 0 auto}
+  .sc-via.asnb{background:#e3f0ff;color:#1c4fa3}
+  .sc-via.ws{background:var(--primary-soft);color:var(--primary-dark)}
+  .sc-via.takaful{background:#eaf6ea;color:#2e7d32}
+  .sc-via.none{background:#f1ede6;color:#8a6d3b}
+  .sc-recip{display:flex;align-items:center;gap:8px}
+  .sc-recip label{font-size:.78rem;color:var(--muted);flex:0 0 auto}
+  .sc-recip select{flex:1;min-width:0}
+  .sc-recip select:disabled{opacity:.6;cursor:not-allowed}
+  .sc-hint-inline{color:var(--muted);font-weight:400}
   .sc-summary{background:var(--primary-soft);color:var(--primary-dark);border-radius:10px;padding:10px 12px;
     font-size:.82rem;line-height:1.5;margin:16px 0 12px}
   .sc-table{width:100%;border-collapse:collapse;font-size:.82rem}
@@ -432,13 +444,18 @@
       </div>
       <div id="dashBase" class="basebar" style="display:none"></div>
     </div>
-    <button class="btn ghost block" id="compareBtn" style="margin-top:10px">⚖️ Bandingkan: Sebelum vs Selepas Hibah</button>
 
     <div class="section-title with-add" style="margin-top:22px">
       <span>Bil Bulanan</span>
       <button class="btn ghost sm" id="goBills">Urus Bil →</button>
     </div>
     <div class="panel" id="dashBills"></div>
+
+    <div class="section-title with-add" style="margin-top:22px">
+      <span>Perancangan Hibah</span>
+      <button class="btn ghost sm" id="goPlan">⚖️ Urus →</button>
+    </div>
+    <div class="panel" id="dashPlan"></div>
 
     <div class="section-title" style="margin-top:22px">Cadangan Perancangan Harta</div>
     <p class="funnel-intro">Faraid adalah <em>fardhu</em>. Produk berikut ialah <strong>pelengkap</strong> (bukan ganti)
@@ -596,11 +613,30 @@
   </main>
 </section>
 
+<!-- ============ PERANCANGAN (HIBAH) VIEW ============ -->
+<section id="view-perancangan" class="view">
+  <header class="appbar">
+    <button class="icon" id="backDashPlan" title="Kembali">←</button>
+    <h1>Perancangan Hibah</h1>
+  </header>
+  <main>
+    <p class="hint">Rancang agihan aset <strong>di luar faraid</strong>: hibahkan aset tertentu kepada penerima
+      pilihan dan lihat kesannya — sebelum vs selepas. Pelan ini disimpan. Faraid kekal <em>fardhu</em>;
+      hibah ialah pelengkap.</p>
+    <div class="section-title">Tetapkan penerima hibah bagi setiap aset</div>
+    <div id="planAssets"></div>
+    <div class="section-title" style="margin-top:22px">Kesan: Sebelum vs Selepas</div>
+    <div id="planResult"></div>
+    <p class="disclaimer">Anggaran sahaja, <strong>bukan nasihat kewangan/syariah muktamad</strong>. Setiap hibah
+      perlu dibuat secara sah melalui salurannya (lihat label setiap aset). Rujuk perunding bertauliah.</p>
+  </main>
+</section>
+
 <!-- ============ ADD BILL MODAL ============ -->
 <div id="billModal" class="modal-bg">
   <div class="modal" role="dialog" aria-modal="true" aria-label="Tambah bil">
     <button class="modal-close" id="closeBillX" aria-label="Tutup">×</button>
-    <h3>Tambah Bil Bulanan</h3>
+    <h3 id="billTitle">Tambah Bil Bulanan</h3>
     <label>Nama bil</label>
     <input type="text" id="bLabel" autocomplete="off" placeholder="cth. Bil air, yuran tadika, gym" />
     <label>Jumlah lazim sebulan (RM)</label>
@@ -664,7 +700,7 @@
 <div id="loanModal" class="modal-bg">
   <div class="modal" role="dialog" aria-modal="true" aria-label="Tambah hutang">
     <button class="modal-close" id="closeLoanX" aria-label="Tutup">×</button>
-    <h3>Tambah Hutang</h3>
+    <h3 id="loanTitle">Tambah Hutang</h3>
     <label>Jenis / nama hutang</label>
     <input type="text" id="lLabel" autocomplete="off" placeholder="cth. Pinjaman peribadi, kad kredit" />
     <label>Jumlah hutang semasa (RM)</label>
@@ -712,17 +748,6 @@
       <button class="btn ghost" id="fmClose">Tutup</button>
       <a class="btn primary" id="fmCta" style="flex:1" target="_blank" rel="noopener">Dapatkan Sebut Harga</a>
     </div>
-  </div>
-</div>
-
-<!-- Scenario comparison: before vs after hibah -->
-<div id="scenarioModal" class="modal-bg">
-  <div class="modal wide" role="dialog" aria-modal="true" aria-labelledby="scTitle">
-    <button class="modal-close" id="scCloseX" aria-label="Tutup">×</button>
-    <h3 id="scTitle">⚖️ Sebelum vs Selepas Hibah</h3>
-    <p class="hint">Lihat kesan jika aset tertentu dihibahkan kepada penerima pilihan — aset itu keluar daripada pembahagian faraid dan diberi terus kepada penerima.</p>
-    <div id="scBody"></div>
-    <div class="actions"><button class="btn ghost block" id="scClose">Tutup</button></div>
   </div>
 </div>
 
@@ -1085,7 +1110,7 @@ function rank(triggers){
 const STORE_KEY='faraid_web_state';
 const PRIV_KEY='faraid_private_mode';
 let privateMode=false;            // when true, estate data is never persisted (shared-device / roadshow mode)
-let state={sel:{}, assets:[], loans:[], bills:[], billLog:{}};
+let state={sel:{}, assets:[], loans:[], bills:[], billLog:{}, hibah:{}};
 
 function uid(){ return 'x'+Math.random().toString(36).slice(2,9); }
 // Every asset/loan/bill needs a stable id so monthly bills can link to them across reorders/deletes.
@@ -1136,12 +1161,12 @@ function load(){
   if(privateMode){ seedDefaults(); ensureIds(); return; } // private: never read a saved estate; fresh each session
   try{
     const r=localStorage.getItem(STORE_KEY);
-    if(r){ state=Object.assign(state,JSON.parse(r)); if(!state.bills)state.bills=[]; if(!state.billLog)state.billLog={}; ensureIds(); return; }
+    if(r){ state=Object.assign(state,JSON.parse(r)); if(!state.bills)state.bills=[]; if(!state.billLog)state.billLog={}; if(!state.hibah)state.hibah={}; ensureIds(); return; }
   }catch(e){ return; }
   seedDefaults(); ensureIds(); // no stored state yet → first run
 }
 function save(){ exampleData=false; if(privateMode) return; try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){} }
-function clearExample(){ state={sel:{},assets:[],loans:[],bills:[],billLog:{}}; save(); showView('dashboard'); }
+function clearExample(){ state={sel:{},assets:[],loans:[],bills:[],billLog:{},hibah:{}}; save(); showView('dashboard'); }
 
 /* ---- Private mode: keep the estate in memory only (shared devices / roadshows) ---- */
 function setPrivateMode(on){
@@ -1158,7 +1183,7 @@ function togglePrivate(){
 }
 function privacyClearNow(){
   if(!confirm('Kosongkan semua maklumat dan mula semula?')) return;
-  state={sel:{},assets:[],loans:[],bills:[],billLog:{}}; exampleData=false;
+  state={sel:{},assets:[],loans:[],bills:[],billLog:{},hibah:{}}; exampleData=false;
   save(); renderDashboard();
 }
 function renderPrivacyBanner(){
@@ -1355,10 +1380,13 @@ function renderAssets(){
           <div class="nm">${escapeHtml(a.label)}</div>${tag}${ex?`<div class="asset-extra">${escapeHtml(ex)}</div>`:''}
         </div>
         <span class="amt">${reduced?`<span class="strike">${RM0.format(a.amount)}</span>`:''}${RM0.format(eff)}</span>`;
+      const edit=document.createElement('button'); edit.className='edit'; edit.textContent='✏️';
+      edit.title='Edit'; edit.setAttribute('aria-label','Edit '+a.label);
+      edit.onclick=()=>openAssetEdit(a);
       const del=document.createElement('button'); del.className='del'; del.textContent='🗑';
       del.title='Padam'; del.setAttribute('aria-label','Padam '+a.label);
-      del.onclick=()=>{ if(confirm(`Padam aset "${a.label}"?`)){ state.assets.splice(idx,1); save(); renderAssets(); } };
-      div.appendChild(del); list.appendChild(div);
+      del.onclick=()=>{ if(confirm(`Padam aset "${a.label}"?`)){ state.assets.splice(idx,1); if(state.hibah) delete state.hibah[a.id]; save(); renderAssets(); } };
+      div.append(edit,del); list.appendChild(div);
     });
   }
 
@@ -1380,10 +1408,13 @@ function renderAssets(){
           <div class="nm">${escapeHtml(l.label)}</div>${tag}${ex?`<div class="asset-extra">${escapeHtml(ex)}</div>`:''}
         </div>
         <span class="amt">${l.isInsured?'':'− '}${RM0.format(amt)}</span>`;
+      const edit=document.createElement('button'); edit.className='edit'; edit.textContent='✏️';
+      edit.title='Edit'; edit.setAttribute('aria-label','Edit '+l.label);
+      edit.onclick=()=>openLoanModal(l);
       const del=document.createElement('button'); del.className='del'; del.textContent='🗑';
       del.title='Padam'; del.setAttribute('aria-label','Padam '+l.label);
       del.onclick=()=>{ if(confirm(`Padam hutang "${l.label}"?`)){ state.loans.splice(idx,1); save(); renderAssets(); } };
-      div.appendChild(del); llist.appendChild(div);
+      div.append(edit,del); llist.appendChild(div);
     });
   }
 
@@ -1449,7 +1480,7 @@ function renderDashboard(){
     pie.className='pie dash empty'; pie.style.background=''; pie.textContent='Belum ada waris';
     dist.innerHTML='<div class="empty-state" style="padding:12px">Pilih waris di Kalkulator Faraid untuk lihat bahagian pusaka.</div>';
     base.style.display='none';
-    renderDashBills(); renderFunnel(); return;
+    renderDashBills(); renderDashPlan(); renderFunnel(); return;
   }
   let acc=0, stops=[];
   all.forEach((r,i)=>{ const c=PIE_COLORS[i%PIE_COLORS.length]; const s=acc, e=acc+r.percent; acc=e;
@@ -1469,6 +1500,7 @@ function renderDashboard(){
   base.style.display='flex';
   base.innerHTML=`<span>${heads} waris menerima</span><span>Asal Masalah ${res.base}</span>`;
   renderDashBills();
+  renderDashPlan();
   renderFunnel();
 }
 
@@ -1711,10 +1743,14 @@ function renderBills(){
     amtin.setAttribute('aria-label','Jumlah '+b.label); attachMoneyInput(amtin);
     chk.onclick=()=>{ const amt=parseAmount(amtin.value)||b.defaultAmount||0; toggleBillPaid(b, amt); };
     div.append(chk,meta,amtin);
-    if(b.manual){ const del=document.createElement('button'); del.className='del'; del.textContent='🗑';
+    if(b.manual){
+      const edit=document.createElement('button'); edit.className='edit'; edit.textContent='✏️';
+      edit.title='Edit'; edit.setAttribute('aria-label','Edit '+b.label);
+      edit.onclick=()=>openBillModal((state.bills||[]).find(x=>x.id===b.manualId));
+      const del=document.createElement('button'); del.className='del'; del.textContent='🗑';
       del.title='Padam'; del.setAttribute('aria-label','Padam '+b.label);
       del.onclick=()=>{ if(confirm(`Padam bil "${b.label}"?`)){ state.bills=(state.bills||[]).filter(x=>x.id!==b.manualId); save(); renderBills(); } };
-      div.appendChild(del); }
+      div.append(edit,del); }
     list.appendChild(div);
   });
 }
@@ -1727,9 +1763,14 @@ function renderDashBills(){
 }
 /* add-bill modal */
 const billModal=document.getElementById('billModal');
-function openBillModal(){
-  document.getElementById('bLabel').value=''; document.getElementById('bAmount').value='';
-  document.getElementById('bCategory').value=''; document.getElementById('billErr').textContent='';
+let editBillId=null;
+function openBillModal(existing){
+  editBillId = existing ? existing.id : null;
+  document.getElementById('billTitle').textContent = existing ? 'Edit Bil Bulanan' : 'Tambah Bil Bulanan';
+  document.getElementById('bLabel').value = existing ? existing.label : '';
+  document.getElementById('bAmount').value = existing ? Number(existing.amount||0).toLocaleString('en-US') : '';
+  document.getElementById('bCategory').value = existing ? (existing.category||'') : '';
+  document.getElementById('billErr').textContent='';
   openOverlay(billModal); setTimeout(()=>document.getElementById('bLabel').focus(),50);
 }
 function closeBillModal(){ closeOverlay(billModal); }
@@ -1742,13 +1783,18 @@ document.getElementById('saveBill').onclick=function(){
   if(isNaN(amount)||amount<=0){ err.textContent='Sila isi jumlah yang sah.'; return; }
   const category=document.getElementById('bCategory').value.trim()||'Bil';
   if(!state.bills) state.bills=[];
-  state.bills.push({id:uid(),label,amount,category});
+  if(editBillId){
+    const bb=state.bills.find(x=>x.id===editBillId);
+    if(bb){ bb.label=label; bb.amount=amount; bb.category=category; }
+  } else {
+    state.bills.push({id:uid(),label,amount,category});
+  }
   save(); closeBillModal(); renderBills();
 };
 document.getElementById('cancelBill').onclick=closeBillModal;
 document.getElementById('closeBillX').onclick=closeBillModal;
 billModal.addEventListener('click',e=>{ if(e.target===billModal) closeBillModal(); });
-document.getElementById('addBillBtn').onclick=openBillModal;
+document.getElementById('addBillBtn').onclick=()=>openBillModal();
 document.getElementById('billPrev').onclick=()=>{ billMonth=ymShift(billMonth,-1); renderBills(); };
 document.getElementById('billNext').onclick=()=>{ billMonth=ymShift(billMonth,1); renderBills(); };
 document.getElementById('backDashBills').onclick=()=>showView('dashboard');
@@ -2030,82 +2076,138 @@ document.getElementById('fmClose').onclick=closeFunnelModal;
 document.getElementById('fmCloseX').onclick=closeFunnelModal;
 funnelModal.addEventListener('click',e=>{ if(e.target===funnelModal) closeFunnelModal(); });
 
-/* ---- Scenario comparison: before vs after hibah (what-if; nothing persisted) ----
-   Hibah moves chosen assets out of the divisible estate to a recipient. The faraid
-   FRACTIONS are unchanged — only the RM total shrinks — and the recipient gets the
-   hibah'd assets' net value on top. Pure render-layer math (reuses solveFaraid + asset math). */
-const scenarioModal=document.getElementById('scenarioModal');
-let scenarioSel=new Set(), scenarioRecipient=null;
-function openScenario(){
-  const res=solveFaraid(state.sel);
-  const body=document.getElementById('scBody');
-  if(res.rows.length===0){
-    body.innerHTML='<div class="empty-state">Pilih waris di Kalkulator Faraid dahulu untuk membandingkan senario.</div>';
-    openOverlay(scenarioModal); return;
-  }
-  scenarioSel=new Set();
-  const heirIds=Object.keys(state.sel).filter(k=>state.sel[k]>0);
-  scenarioRecipient = state.sel.is>0?'is':(state.sel.s>0?'s':(heirIds[0]||'other'));
-  const assets=state.assets||[];
-  const aHtml = assets.length
-    ? assets.map((a,i)=>`<label class="sc-chk"><input type="checkbox" data-i="${i}"> <span>${escapeHtml(a.label||ASSET_NAME[a.type]||'Aset')}</span><span class="sc-amt">${RM0.format(Number(a.amount)||0)}</span></label>`).join('')
-    : '<div class="empty-state" style="padding:14px">Tiada aset untuk dihibahkan. Tambah aset dahulu di Senarai Aset.</div>';
-  const opts = heirIds.map(id=>`<option value="${id}"${id===scenarioRecipient?' selected':''}>${escapeHtml(HEIR_LABEL[id]||id)}</option>`).join('')
-    + `<option value="other"${scenarioRecipient==='other'?' selected':''}>Orang lain (bukan waris)</option>`;
-  body.innerHTML=
-    `<div class="sc-step">1. Pilih aset untuk dihibahkan</div>
-     <div class="sc-assets">${aHtml}</div>
-     <div class="sc-step">2. Penerima hibah</div>
-     <select id="scRecipient" class="sortsel" style="width:100%">${opts}</select>
-     <div id="scResult"></div>`;
-  body.querySelectorAll('.sc-assets input[type=checkbox]').forEach(c=>c.onchange=()=>{
-    const i=Number(c.dataset.i); if(c.checked) scenarioSel.add(i); else scenarioSel.delete(i); renderScenarioResult();
-  });
-  const rsel=document.getElementById('scRecipient');
-  if(rsel) rsel.onchange=()=>{ scenarioRecipient=rsel.value; renderScenarioResult(); };
-  renderScenarioResult();
-  openOverlay(scenarioModal);
+/* ---- Hibah planning (Perancangan): its own page + dashboard summary; persisted in state.hibah ----
+   `state.hibah` maps assetId -> recipientId ('' / absent = kept in faraid). Hibah moves the asset
+   out of the divisible estate to that recipient; faraid FRACTIONS are unchanged — only the RM total
+   shrinks — and each recipient gets the net value of the assets given to them. Each asset category
+   shows HOW to execute the hibah (ASNB self-service, KWSP not hibah-able, others via Wasiyyah Shoppe). */
+const HIBAH_METHODS={
+  kwsp:    {can:false, via:'KWSP',            note:'Tidak boleh dihibahkan — penama KWSP hanya pentadbir; baki tetap dibahagi mengikut faraid.'},
+  asb:     {can:true,  via:'ASNB',            note:'Boleh hibah sendiri melalui myASNB (laman web/aplikasi) atau cawangan ASNB.'},
+  life:    {can:true,  via:'Takaful',         note:'Sudah dalam bentuk hibah takaful — tetapkan penerima hibah pada sijil takaful.'},
+  property:{can:true,  via:'Wasiyyah Shoppe', note:'Hibah Hartanah (atau HBB jika bercagar) melalui Wasiyyah Shoppe.'},
+};
+const HIBAH_DEFAULT={can:true, via:'Wasiyyah Shoppe', note:'Boleh hibah melalui Wasiyyah Shoppe (cth. Hibah Mutlak / Hibah Amanah).'};
+function hibahMethod(type){ return HIBAH_METHODS[type]||HIBAH_DEFAULT; }
+function hibahViaClass(via){ return via==='ASNB'?'asnb':(via==='Takaful'?'takaful':(via==='KWSP'?'none':'ws')); }
+// how many assets are actually hibah'd (exists + hibah-able)
+function hibahActiveCount(){
+  const hib=state.hibah||{};
+  return (state.assets||[]).filter(a=>hib[a.id] && hibahMethod(a.type).can).length;
 }
-function renderScenarioResult(){
-  const el=document.getElementById('scResult'); if(!el) return;
+// before/after estate + per-recipient credit, from the persisted plan
+function computeHibahPlan(){
   const res=solveFaraid(state.sel);
-  const assets=state.assets||[];
   const beforeNet=netTotal();
-  let hibahAmt=0, hibahDed=0;
-  scenarioSel.forEach(i=>{ const a=assets[i]; if(a){ hibahAmt+=Number(a.amount)||0; hibahDed+=loanDeduction(a); } });
-  const afterNet=Math.max(0,(grossTotal()-hibahAmt)-(debtTotal()-hibahDed));
-  const hibahReceived=Math.max(0, hibahAmt-hibahDed);
-  const rec=scenarioRecipient;
-  const all=res.rows.slice(); if(res.baitulmal) all.push(res.baitulmal);
-  const parties=[]; let recInRows=false;
-  all.forEach(r=>{
-    const before=fval(r.frac)*beforeNet;
-    let after=fval(r.frac)*afterNet;
-    const isRec=r.id===rec; if(isRec){ after+=hibahReceived; recInRows=true; }
-    parties.push({label:r.label,count:r.count,before,after,isRec});
+  const hib=state.hibah||{};
+  let hibahAmt=0, hibahDed=0; const credit={};
+  (state.assets||[]).forEach(a=>{
+    const r=hib[a.id]; if(!r) return;
+    if(!hibahMethod(a.type).can) return;        // skip non-hibah-able (e.g. a stale KWSP assignment)
+    const amt=Number(a.amount)||0, ded=loanDeduction(a);
+    hibahAmt+=amt; hibahDed+=ded;
+    credit[r]=(credit[r]||0)+Math.max(0, amt-ded);
   });
-  if(!recInRows && hibahReceived>0){
-    const label = rec==='other'?'Penerima Hibah (bukan waris)':(HEIR_LABEL[rec]||'Penerima');
-    parties.push({label,count:state.sel[rec]||1,before:0,after:hibahReceived,isRec:true});
-  }
-  const recLabel = rec==='other'?'penerima bukan waris':(HEIR_LABEL[rec]||'penerima');
+  const afterNet=Math.max(0,(grossTotal()-hibahAmt)-(debtTotal()-hibahDed));
+  return {res, beforeNet, afterNet, credit, hibahTotal:Math.max(0,hibahAmt-hibahDed)};
+}
+function hibahResultHtml(plan){
+  const {res, beforeNet, afterNet, credit}=plan;
+  const all=res.rows.slice(); if(res.baitulmal) all.push(res.baitulmal);
+  const parties=[]; const seen=new Set();
+  all.forEach(r=>{ const c=credit[r.id]||0; if(c>0) seen.add(r.id);
+    parties.push({label:r.label,count:r.count,before:fval(r.frac)*beforeNet,after:fval(r.frac)*afterNet+c,isRec:c>0}); });
+  Object.keys(credit).forEach(r=>{ if(seen.has(r)) return;     // recipients who don't inherit (blocked heirs / non-heirs)
+    const label = r==='other'?'Penerima Hibah (bukan waris)':(HEIR_LABEL[r]||'Penerima');
+    parties.push({label,count:(r==='other'?1:(state.sel[r]||1)),before:0,after:credit[r],isRec:true}); });
+  const recipKeys=Object.keys(credit);
   let html=`<div class="sc-summary">Harta boleh dibahagi: <strong>${RM0.format(beforeNet)}</strong> → <strong>${RM0.format(afterNet)}</strong>`;
-  if(hibahReceived>0) html+=`<br>Hibah kepada ${escapeHtml(recLabel)}: <strong>${RM0.format(hibahReceived)}</strong> (di luar faraid)`;
+  recipKeys.forEach(r=>{ const label = r==='other'?'penerima bukan waris':(HEIR_LABEL[r]||'penerima');
+    html+=`<br>Hibah → ${escapeHtml(label)}: <strong>${RM0.format(credit[r])}</strong> (di luar faraid)`; });
+  if(!recipKeys.length) html+=`<br><span class="sc-hint-inline">Pilih penerima bagi mana-mana aset di atas untuk lihat kesannya.</span>`;
   html+=`</div>`;
   html+=`<table class="sc-table"><thead><tr><th>Penerima</th><th>Sebelum</th><th>Selepas</th><th>Δ</th></tr></thead><tbody>`;
-  parties.forEach(p=>{
-    const d=Math.round(p.after-p.before);
-    const ds = d===0?'—':((d>0?'+':'')+RM0.format(d));
-    html+=`<tr class="${p.isRec?'sc-rec':''}"><td>${escapeHtml(p.label)}${p.count>1?` ×${p.count}`:''}</td><td>${RM0.format(p.before)}</td><td>${RM0.format(p.after)}</td><td class="${d>0?'pos':(d<0?'neg':'')}">${ds}</td></tr>`;
-  });
+  parties.forEach(p=>{ const d=Math.round(p.after-p.before); const ds = d===0?'—':((d>0?'+':'')+RM0.format(d));
+    html+=`<tr class="${p.isRec?'sc-rec':''}"><td>${escapeHtml(p.label)}${p.count>1?` ×${p.count}`:''}</td><td>${RM0.format(p.before)}</td><td>${RM0.format(p.after)}</td><td class="${d>0?'pos':(d<0?'neg':'')}">${ds}</td></tr>`; });
   html+=`</tbody></table>`;
-  html+=`<p class="sc-note">Anggaran sahaja. Hibah perlu dibuat secara sah melalui instrumen yang diiktiraf (cth. Hibah Amanah). Aset bercagar lazimnya dipindah bersama baki hutangnya.</p>`;
-  el.innerHTML=html;
+  html+=`<p class="sc-note">Anggaran sahaja. Setiap hibah perlu dibuat secara sah melalui salurannya (lihat label setiap aset). Aset bercagar lazimnya dipindah bersama baki hutangnya.</p>`;
+  return html;
 }
-function closeScenario(){ closeOverlay(scenarioModal); }
-document.getElementById('scClose').onclick=closeScenario;
-document.getElementById('scCloseX').onclick=closeScenario;
-scenarioModal.addEventListener('click',e=>{ if(e.target===scenarioModal) closeScenario(); });
+function renderPerancangan(){
+  const assetsHost=document.getElementById('planAssets');
+  const resultHost=document.getElementById('planResult');
+  if(!assetsHost||!resultHost) return;
+  const res=solveFaraid(state.sel);
+  if(res.rows.length===0){
+    assetsHost.innerHTML='<div class="empty-state">Pilih waris di Kalkulator Faraid dahulu untuk merancang hibah.</div>';
+    resultHost.innerHTML=''; return;
+  }
+  const assets=state.assets||[];
+  const hib=state.hibah||{};
+  // recipient options: selected heirs ∪ any heir referenced by the saved plan, + "other"
+  const heirIds=Object.keys(state.sel).filter(k=>state.sel[k]>0);
+  const refIds=Object.values(hib).filter(r=>r&&r!=='other'&&!heirIds.includes(r));
+  const optIds=heirIds.concat(refIds.filter((v,i,a)=>a.indexOf(v)===i));
+  if(!assets.length){
+    assetsHost.innerHTML='<div class="empty-state">Tiada aset. Tambah aset dahulu di Senarai Aset.</div>';
+  } else {
+    assetsHost.innerHTML=assets.map(a=>{
+      const m=hibahMethod(a.type); const cur=hib[a.id]||'';
+      const opts = m.can
+        ? `<option value=""${cur===''?' selected':''}>— Kekal dalam faraid</option>`
+          + optIds.map(id=>`<option value="${id}"${cur===id?' selected':''}>${escapeHtml(HEIR_LABEL[id]||id)}</option>`).join('')
+          + `<option value="other"${cur==='other'?' selected':''}>Orang lain (bukan waris)</option>`
+        : `<option value="">Tidak boleh dihibah</option>`;
+      return `<div class="sc-asset">
+        <div class="sc-asset-head"><span class="sc-asset-nm">${escapeHtml(a.label||ASSET_NAME[a.type]||'Aset')}</span><span class="sc-amt">${RM0.format(Number(a.amount)||0)}</span></div>
+        <div class="sc-method"><span class="sc-via ${hibahViaClass(m.via)}">${escapeHtml(m.via)}</span><span>${escapeHtml(m.note)}</span></div>
+        <div class="sc-recip"><label>Hibah kepada</label><select class="sortsel" data-id="${a.id}"${m.can?'':' disabled'}>${opts}</select></div>
+      </div>`;
+    }).join('');
+    assetsHost.querySelectorAll('.sc-recip select').forEach(sel=>sel.onchange=()=>{
+      if(!state.hibah) state.hibah={};
+      const id=sel.dataset.id;
+      if(sel.value) state.hibah[id]=sel.value; else delete state.hibah[id];
+      save(); renderPerancangan();
+    });
+  }
+  resultHost.innerHTML=hibahResultHtml(computeHibahPlan());
+}
+/* Dashboard hibah widget — a donut + legend (like the faraid widget) showing how the total
+   divisible wealth splits between "still divided by faraid" and each hibah recipient. */
+const PLAN_FARAID_COLOR='#cdc8da';   // neutral slate = the portion that still goes through faraid
+function renderDashPlan(){
+  const el=document.getElementById('dashPlan'); if(!el) return;
+  if(solveFaraid(state.sel).rows.length===0){
+    el.innerHTML='<div class="empty-state" style="padding:12px">Pilih waris dahulu, kemudian rancang hibah di luar faraid.</div>'; return;
+  }
+  const p=computeHibahPlan();
+  if(p.beforeNet<=0){
+    el.innerHTML='<div class="empty-state" style="padding:12px">Tambah aset untuk merancang hibah di luar faraid.</div>'; return;
+  }
+  const n=hibahActiveCount();
+  // slices: the faraid-divided remainder, then one per hibah recipient
+  const slices=[{label:'Dibahagi faraid', amt:p.afterNet, color:PLAN_FARAID_COLOR}];
+  Object.keys(p.credit).forEach((r,i)=>{
+    const who = r==='other' ? 'bukan waris' : (HEIR_LABEL[r]||r);
+    slices.push({label:'Hibah → '+who, amt:p.credit[r], color:PIE_COLORS[i%PIE_COLORS.length]});
+  });
+  const total=slices.reduce((s,x)=>s+x.amt,0)||1;
+  let acc=0; const stops=[];
+  slices.forEach(s=>{ const a=acc/total*100, b=(acc+s.amt)/total*100; acc+=s.amt; stops.push(`${s.color} ${a.toFixed(2)}% ${b.toFixed(2)}%`); });
+  const legend=slices.map(s=>
+    `<div class="row"><span class="sw" style="background:${s.color}"></span>
+       <span class="nm">${escapeHtml(s.label)}<span class="sub">${RM0.format(s.amt)}</span></span>
+       <span class="pct">${(s.amt/total*100).toFixed(1)}%</span></div>`).join('');
+  const foot = n ? `${n} aset dihibah • ${RM0.format(p.hibahTotal)} di luar faraid`
+                 : 'Belum ada hibah — semua melalui faraid';
+  el.innerHTML=
+    `<div class="dash-dist-wrap">
+       <div class="pie dash" style="background:conic-gradient(${stops.join(',')})"></div>
+       <div class="legend">${legend}</div>
+     </div>
+     <div class="basebar"><span>${foot}</span><span>Boleh dibahagi ${RM0.format(p.afterNet)}</span></div>`;
+}
 
 /* ---- slim contextual nudge on the faraid result panel ---- */
 function renderFaraidNudge(){
@@ -2133,7 +2235,7 @@ function openOverlay(el){ _modalReturn=document.activeElement; el.classList.add(
 function closeOverlay(el){ el.classList.remove('open'); if(_modalReturn&&_modalReturn.focus){ try{_modalReturn.focus();}catch(e){} } _modalReturn=null; }
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape') return;
-  ['modal','loanModal','funnelModal','billModal','scenarioModal'].forEach(id=>{
+  ['modal','loanModal','funnelModal','billModal'].forEach(id=>{
     const el=document.getElementById(id);
     if(el&&el.classList.contains('open')) closeOverlay(el);
   });
@@ -2155,8 +2257,12 @@ function enhanceSwitches(){
    ADD ASSET modal
    ============================================================ */
 const modal=document.getElementById('modal');
-let curType=null, swLoan=false, swInsured=false;
-function openModal(){ openOverlay(modal); showStep(1); buildTypeGrid(); }
+let curType=null, swLoan=false, swInsured=false, editAssetId=null;
+function openModal(){ editAssetId=null; openOverlay(modal); showStep(1); buildTypeGrid(); }
+function openAssetEdit(a){
+  const t=ASSET_TYPES.find(x=>x.id===a.type)||{id:a.type,name:ASSET_NAME[a.type]||'Aset',loan:!!a.isLoan};
+  openOverlay(modal); openForm(t, a);
+}
 function closeModal(){ closeOverlay(modal); }
 function showStep(n){
   document.getElementById('modalStep1').style.display=n===1?'block':'none';
@@ -2208,20 +2314,33 @@ function buildAssetExtra(typeId){
     host.append(lab,inp);
   });
 }
-function openForm(t){
-  curType=t; swLoan=false; swInsured=false;
-  document.getElementById('formTitle').textContent=t.name;
-  document.getElementById('fLabel').value='';
-  document.getElementById('fAmount').value='';
-  document.getElementById('fLoan').value='';
-  document.getElementById('fMonthly').value='';
+function openForm(t, existing){
+  curType=t;
+  editAssetId = existing ? existing.id : null;
+  swLoan = !!(existing && existing.isLoan);
+  swInsured = !!(existing && existing.isInsured);
+  document.getElementById('formTitle').textContent=(existing?'Edit: ':'')+t.name;
+  document.getElementById('fLabel').value=existing?existing.label:'';
+  document.getElementById('fAmount').value=existing?Number(existing.amount||0).toLocaleString('en-US'):'';
+  document.getElementById('fLoan').value=(existing&&existing.isLoan)?Number(existing.loanAmount||0).toLocaleString('en-US'):'';
+  document.getElementById('fMonthly').value=(existing&&existing.extra&&existing.extra.monthly)?Number(existing.extra.monthly).toLocaleString('en-US'):'';
   document.getElementById('formErr').textContent='';
   document.getElementById('loanWrap').style.display=t.loan?'block':'none';
-  document.getElementById('loanDetail').style.display='none';
-  resetSwitch(document.getElementById('swLoan'));
-  resetSwitch(document.getElementById('swInsured'));
+  document.getElementById('loanDetail').style.display=swLoan?'block':'none';
+  setSwitch(document.getElementById('swLoan'), swLoan);
+  setSwitch(document.getElementById('swInsured'), swInsured);
   buildAssetExtra(t.id);
-  document.getElementById('assetExtraWrap').open=false;
+  if(existing && existing.extra){
+    document.querySelectorAll('#assetExtra [data-key]').forEach(inp=>{
+      const v=existing.extra[inp.dataset.key];
+      if(v===undefined||v===null||v==='') return;
+      inp.value = inp.dataset.kind==='money' ? Number(v).toLocaleString('en-US') : v;
+    });
+  }
+  // open the optional-details section if there's anything in it besides the loan's monthly
+  document.getElementById('assetExtraWrap').open = !!(existing && existing.extra && Object.keys(existing.extra).some(k=>k!=='monthly'));
+  // "← Kembali" returns to the type picker (add flow); "Batal" closes (edit flow, no picker)
+  document.getElementById('cancelAsset').textContent = existing ? 'Batal' : '← Kembali';
   showStep(2);
   setTimeout(()=>document.getElementById('fLabel').focus(),50);
 }
@@ -2265,14 +2384,23 @@ document.getElementById('saveAsset').onclick=function(){
     const v=(inp.value||'').trim(); if(!v) return;
     extra[inp.dataset.key] = inp.dataset.kind==='money' ? parseAmount(v) : v;
   });
-  const asset={id:uid(),type:curType.id,label,amount,isLoan:!!swLoan,isInsured:!!swInsured,loanAmount};
-  if(Object.keys(extra).length) asset.extra=extra;
-  state.assets.push(asset);
+  if(editAssetId){
+    const a=state.assets.find(x=>x.id===editAssetId);
+    if(a){
+      a.type=curType.id; a.label=label; a.amount=amount;
+      a.isLoan=!!swLoan; a.isInsured=!!swInsured; a.loanAmount=loanAmount;
+      if(Object.keys(extra).length) a.extra=extra; else delete a.extra;
+    }
+  } else {
+    const asset={id:uid(),type:curType.id,label,amount,isLoan:!!swLoan,isInsured:!!swInsured,loanAmount};
+    if(Object.keys(extra).length) asset.extra=extra;
+    state.assets.push(asset);
+  }
   save(); closeModal(); renderAssets();
 };
 document.getElementById('cancelAsset').onclick=()=>{
-  // "← Kembali" returns to the type picker; the × button closes entirely
-  showStep(1);
+  // edit flow has no type picker → close; add flow → back to the type picker
+  if(editAssetId) closeModal(); else showStep(1);
 };
 document.getElementById('closeAssetX').onclick=closeModal;
 modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
@@ -2281,15 +2409,17 @@ modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); });
    ADD LOAN modal (standalone debts / liabilities)
    ============================================================ */
 const loanModal=document.getElementById('loanModal');
-let swLoanInsured=false;
-function openLoanModal(){
-  swLoanInsured=false;
-  document.getElementById('lLabel').value='';
-  document.getElementById('lAmount').value='';
-  document.getElementById('lMonthly').value='';
-  document.getElementById('lLender').value='';
+let swLoanInsured=false, editLoanId=null;
+function openLoanModal(existing){
+  editLoanId = existing ? existing.id : null;
+  swLoanInsured = !!(existing && existing.isInsured);
+  document.getElementById('loanTitle').textContent = existing ? 'Edit Hutang' : 'Tambah Hutang';
+  document.getElementById('lLabel').value = existing ? existing.label : '';
+  document.getElementById('lAmount').value = existing ? Number(existing.amount||0).toLocaleString('en-US') : '';
+  document.getElementById('lMonthly').value = (existing&&existing.extra&&existing.extra.monthly) ? Number(existing.extra.monthly).toLocaleString('en-US') : '';
+  document.getElementById('lLender').value = (existing&&existing.extra&&existing.extra.lender) ? existing.extra.lender : '';
   document.getElementById('loanErr').textContent='';
-  resetSwitch(document.getElementById('swLoanInsured'));
+  setSwitch(document.getElementById('swLoanInsured'), swLoanInsured);
   openOverlay(loanModal);
   setTimeout(()=>document.getElementById('lLabel').focus(),50);
 }
@@ -2307,15 +2437,21 @@ document.getElementById('saveLoan').onclick=function(){
   const extra={};
   const m=parseAmount(document.getElementById('lMonthly').value); if(!isNaN(m)&&m>0) extra.monthly=m;
   const lender=document.getElementById('lLender').value.trim(); if(lender) extra.lender=lender;
-  const loan={id:uid(),label,amount,isInsured:!!swLoanInsured};
-  if(Object.keys(extra).length) loan.extra=extra;
-  state.loans.push(loan);
+  if(editLoanId){
+    const l=state.loans.find(x=>x.id===editLoanId);
+    if(l){ l.label=label; l.amount=amount; l.isInsured=!!swLoanInsured;
+           if(Object.keys(extra).length) l.extra=extra; else delete l.extra; }
+  } else {
+    const loan={id:uid(),label,amount,isInsured:!!swLoanInsured};
+    if(Object.keys(extra).length) loan.extra=extra;
+    state.loans.push(loan);
+  }
   save(); closeLoanModal(); renderAssets();
 };
 document.getElementById('cancelLoan').onclick=closeLoanModal;
 document.getElementById('closeLoanX').onclick=closeLoanModal;
 loanModal.addEventListener('click',e=>{ if(e.target===loanModal) closeLoanModal(); });
-document.getElementById('addLoanBtn').onclick=openLoanModal;
+document.getElementById('addLoanBtn').onclick=()=>openLoanModal();
 document.getElementById('assetSort').onchange=function(){ assetSort=this.value; renderAssets(); };
 document.getElementById('loanSort').onchange=function(){ loanSort=this.value; renderAssets(); };
 
@@ -2330,6 +2466,7 @@ function showView(name, replace){
   if(name==='faraid') renderFaraid();
   if(name==='assets') renderAssets();
   if(name==='bills') renderBills();
+  if(name==='perancangan') renderPerancangan();
   const url='#'+name;
   // pushState so the hardware/browser Back button navigates between views (not out of the app)
   if(replace) history.replaceState({view:name},'',url);
@@ -2337,7 +2474,7 @@ function showView(name, replace){
 }
 window.addEventListener('popstate',()=>{
   const h=location.hash.replace('#','');
-  const name=(h==='faraid'||h==='assets'||h==='bills'||h==='dashboard')?h:'dashboard';
+  const name=(h==='faraid'||h==='assets'||h==='bills'||h==='perancangan'||h==='dashboard')?h:'dashboard';
   showView(name, true);   // render the popped view without pushing a new entry
 });
 document.getElementById('goFaraid').onclick=()=>showView('faraid');
@@ -2348,7 +2485,8 @@ document.getElementById('toAssets').onclick=()=>showView('assets');
 document.getElementById('addAssetBtn').onclick=openModal;
 document.getElementById('printBtn').onclick=()=>{ buildPrintReport(); window.print(); };
 document.getElementById('privacyBtn').onclick=togglePrivate;
-document.getElementById('compareBtn').onclick=openScenario;
+document.getElementById('goPlan').onclick=()=>showView('perancangan');
+document.getElementById('backDashPlan').onclick=()=>showView('dashboard');
 // also handle the browser's native print (Ctrl/Cmd+P) so the report is never blank
 window.addEventListener('beforeprint', buildPrintReport);
 document.getElementById('resetBtn').onclick=()=>{
@@ -2364,7 +2502,7 @@ window.addEventListener('load',()=>{
   setTimeout(()=>{
     const sp=document.getElementById('splash'); sp.classList.add('hide');
     const h=location.hash.replace('#','');
-    const start=(h==='assets'||h==='faraid'||h==='bills')?h:'dashboard';
+    const start=(h==='assets'||h==='faraid'||h==='bills'||h==='perancangan')?h:'dashboard';
     showView(start, true);   // initial view replaces history (no spurious back entry)
     setTimeout(()=>sp.remove(),300);
   },300);

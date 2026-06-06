@@ -1,8 +1,10 @@
 # ☪ Kalkulator Faraid
 
 A Malaysian Islamic inheritance (**Faraid**) calculator with a full estate-planning
-companion: asset & liability inventory, net divisible-estate computation, a monthly-bill
-tracker, a financial-health view, and personalised estate-planning suggestions.
+companion: explainable per-heir shares, an asset & liability inventory, net divisible-estate
+computation, a monthly-bill tracker, a financial-health dashboard, an estate-completeness
+meter, a **before/after-hibah scenario comparison**, a **printable PDF report**, a
+**private mode** for shared devices, and personalised estate-planning suggestions.
 
 It is a **dependency-free, single-file static web app** — all HTML, CSS, and JavaScript
 live in [`public/index.html`](public/index.html). No build step, no framework, no backend.
@@ -10,7 +12,8 @@ Calculations follow **Shāfiʿī / Malaysian practice** (including *radd*). The 
 
 > **Privacy by design.** Everything runs in your browser. Your estate data is stored only in
 > `localStorage` on your own device and is never sent to any server. The only time any summary
-> leaves the device is if *you* explicitly tap a "Get a quote" WhatsApp link.
+> leaves the device is if *you* explicitly tap a "Get a quote" WhatsApp link. A **Private Mode**
+> (see below) keeps the estate in memory only — nothing is written to disk — for shared devices.
 
 ---
 
@@ -52,6 +55,10 @@ Calculations follow **Shāfiʿī / Malaysian practice** (including *radd*). The 
   *Sihat / Sederhana / Perlu Perhatian* verdict).
 - **"Needs attention" insight chips** derived from the estate (e.g. *"X% berisiko ke Baitulmal"*,
   *"Tanpa anak lelaki — baki ke waris asabah"*, *"Pinjaman rumah belum dilindungi"*).
+- An **estate-completeness meter** (*Kelengkapan Maklumat Harta*) — a documentation checklist
+  (heirs, cash, KWSP, investments, property, takaful, debts) with a progress bar and clickable
+  "missing" chips that jump to the right view. Framed as guidance, not judgement: items that
+  don't apply can be ignored.
 - The faraid distribution as a donut + legend, a bills summary, then the planning suggestions.
 
 ### 5. Estate-planning suggestions (Cadangan Perancangan Harta)
@@ -63,6 +70,33 @@ Hibah**, **Hibah / Hibah Amanah**, **Wasiat**, and **Al-Wasitah** (estate admini
 > liquidity, debt settlement, non-heirs, and lawful wishes within the 1/3 / hibah rules. Copy never
 > implies faraid is unjust. The suggestions are advisory, and any contact (a prefilled WhatsApp
 > message) is only sent when the user explicitly taps it.
+
+### 6. Hibah planning — *Perancangan Hibah* (Sebelum vs Selepas)
+A **saved plan** for distributing assets *outside* faraid, on its **own page** with a summary on
+the dashboard. Model "what if I gift some assets?" and see the impact **side by side**:
+- Assign **each asset to any recipient** — any selected heir (including a *mahjub* one) or a
+  non-heir. Different assets can go to different people. The plan **persists** (in `state.hibah`).
+- A live **before/after table** per person with a Δ column. Hibah moves an asset out of the
+  divisible estate (the faraid *fractions* stay the same — only the RM total shrinks) and credits
+  the recipient the asset's **net** value, so totals are conserved. It honestly shows the *net*
+  effect (e.g. gifting the house lifts the spouse but also shrinks her faraid share).
+- **Each category shows how to execute the hibah:** ASNB can be done yourself via *myASNB*;
+  **KWSP cannot be hibah'd** (its nominee is only an administrator — the balance still follows
+  faraid, so it stays in the estate); Takaful Hibah is set on the certificate; and other assets
+  (property, cash, etc.) go through **Wasiyyah Shoppe** products.
+
+### 7. Printable report (PDF) — *Cetak / PDF*
+A one-tap **🖨 PDF** button builds a clean, professional report and opens the browser's print
+dialog (choose a printer or "Save as PDF") — dependency-free, via a print-only stylesheet and
+`window.print()`. The report covers the estate summary, the faraid distribution table (with the
+per-heir *Sebab*), blocked heirs, "needs attention" points, an advisory suggestion, and the
+disclaimer. The browser's native Ctrl/Cmd+P works too.
+
+### 8. Private mode — *Mod Privasi*
+A 🔓/🔒 toggle for shared devices and roadshows. When on, the estate is kept **in memory only** —
+any previously saved estate on the device is wiped and nothing new is written, so it disappears
+when the browser closes. The preference itself persists (so an agent's device stays private), and
+a **"Kosongkan sekarang"** action clears everything between sessions.
 
 ---
 
