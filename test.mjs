@@ -94,6 +94,21 @@ rsn('Grandfather blocked by father (mahjub)', {b:1,d:1}, {blocked:{d:'Terhalang 
 rsn('Grandson blocked by son (mahjub)', {al:1,cl:1}, {blocked:{cl:'Terhalang oleh Anak Lelaki'}});
 rsn('Umariyyatan mother reason', {s:1,i:1,b:1}, {rows:{i:'Umariyyatān'}});
 
+// --- confidence / risk level (engine flags intricate or unsupported cases) ---
+function ctest(name, sel, expected){
+  const res=solveFaraid(sel);
+  if(res.confidence===expected){ pass++; console.log(`✓ ${name}`); }
+  else { fail++; console.log(`✗ ${name}: got ${res.confidence} want ${expected}`); }
+}
+ctest('Confidence: common case (wife+son) → standard', {is:1,al:1}, 'standard');
+ctest('Confidence: husband + 2 sisters (aul) → standard', {s:1,sk:2}, 'standard');
+ctest('Confidence: Umariyyatan → standard', {s:1,i:1,b:1}, 'standard');
+ctest('Confidence: grandfather + brother (muqasamah) → complex', {d:1,bk:1}, 'complex');
+ctest('Confidence: sister + daughter (asabah maal-ghair) → complex', {ap:1,sk:1}, 'complex');
+ctest('Confidence: Musytarakah → complex', {s:1,i:1,ss:2,bk:1}, 'complex');
+ctest('Confidence: Akdariyyah (spouse+mother+gf+sister) → review', {s:1,i:1,d:1,sk:1}, 'review');
+ctest('Confidence: muaddah (gf + full + consanguine sibs) → review', {d:1,bk:1,bt:1}, 'review');
+
 // --- asset net-total logic (insured debts not deducted; uninsured deducted; clamp at 0) ---
 const assetBlock = script.slice(script.indexOf('function loanDeduction'), script.indexOf('\nfunction renderAssets'));
 function netTotalFor(assets, loans){

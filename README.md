@@ -31,6 +31,11 @@ Calculations follow **Shāfiʿī / Malaysian practice** (including *radd*). The 
   important in a religious + financial domain.
 - Case notes explain estate-wide mechanisms when they apply: *ʿAul*, *Radd*, *Umariyyatān*,
   *Musytarakah*, grandfather *muqāsamah*, and *asabah maʿa-l-ghayr*.
+- **Confidence badge.** Each result shows a visible reliability level so caveats aren't buried in
+  a disclaimer: **standard** (common case, fully supported), **complex** (supported but intricate —
+  e.g. grandfather with siblings, *asabah maʿa-l-ghayr*, *Musytarakah* — "verify with an expert"),
+  or **review** (a detected special case like *Akdariyyah* / *muʿāddah* the engine may not compute
+  exactly — "consult a certified faraid expert"). The badge also appears on the dashboard and in the PDF.
 - The result panel is deliberately kept **pure** — fiqh basis and limits are shown with it, and
   any product suggestion is a separate, clearly-optional element below it.
 
