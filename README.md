@@ -11,9 +11,16 @@ live in [`public/index.html`](public/index.html). No build step, no framework, n
 Calculations follow **Shāfiʿī / Malaysian practice** (including *radd*). The UI is in **Malay**.
 
 > **Privacy by design.** Everything runs in your browser. Your estate data is stored only in
-> `localStorage` on your own device and is never sent to any server. The only time any summary
-> leaves the device is if *you* explicitly tap a "Get a quote" WhatsApp link. A **Private Mode**
-> (see below) keeps the estate in memory only — nothing is written to disk — for shared devices.
+> `localStorage` on your own device and is never sent to any server by default. The only time any
+> summary leaves the device is if *you* explicitly tap a "Get a quote" WhatsApp link. A **Private
+> Mode** (see below) keeps the estate in memory only — nothing is written to disk — for shared devices.
+>
+> Two **optional integrations** are **off unless whoever deploys the app turns them on** (§9): a
+> privacy-friendly, **cookieless analytics** counter that records only *anonymous event names*
+> (e.g. "PDF generated") — **never** estate data, RM amounts, or heirs — and which respects the
+> browser's *Do Not Track*, is suppressed entirely in Private Mode, and can be switched off in-app;
+> and **Google Drive backup**, which saves a backup file to *your own* Google Drive (the app uses the
+> narrow `drive.file` scope, so it can only see the one file it creates — not the rest of your Drive).
 
 ---
 
@@ -58,6 +65,12 @@ Calculations follow **Shāfiʿī / Malaysian practice** (including *radd*). The 
 ### 4. Dashboard (Islamic estate health check)
 - Net divisible estate up top, with a **financial-health bar** (net vs deductible-debt split and a
   *Sihat / Sederhana / Perlu Perhatian* verdict).
+- An **Estate Readiness Score** (*Skor Kesediaan Harta Islam*) — a single credit-score-style
+  **0–100 gauge** with a band (*Perlu Perhatian / Sederhana / Baik / Cemerlang*), composed from
+  signals the app already computes: heirs identified, information completeness, debt protection,
+  liquidity, heir/spouse protection (Baitulmal leakage), and planning actions taken. Each dimension
+  is a clickable breakdown row that jumps to the view where you can improve it. The score also
+  appears in the PDF report.
 - **"Needs attention" insight chips** derived from the estate (e.g. *"X% berisiko ke Baitulmal"*,
   *"Tanpa anak lelaki — baki ke waris asabah"*, *"Pinjaman rumah belum dilindungi"*).
 - An **estate-completeness meter** (*Kelengkapan Maklumat Harta*) — a documentation checklist
@@ -93,15 +106,34 @@ the dashboard. Model "what if I gift some assets?" and see the impact **side by 
 ### 7. Printable report (PDF) — *Cetak / PDF*
 A one-tap **🖨 PDF** button builds a clean, professional report and opens the browser's print
 dialog (choose a printer or "Save as PDF") — dependency-free, via a print-only stylesheet and
-`window.print()`. The report covers the estate summary, the faraid distribution table (with the
-per-heir *Sebab*), blocked heirs, "needs attention" points, an advisory suggestion, and the
-disclaimer. The browser's native Ctrl/Cmd+P works too.
+`window.print()`. It's framed as a **spouse-shareable** document: a prominent **"Jika Berlaku
+Kematian Hari Ini"** risk summary up top, the estate summary (incl. the readiness score), the faraid
+distribution table (with the per-heir *Sebab* and the confidence level), blocked heirs, an
+**"Apa Boleh Dibuat Sekarang"** action list (each action paired to a risk), and the disclaimer. The
+browser's native Ctrl/Cmd+P works too.
 
 ### 8. Private mode — *Mod Privasi*
 A 🔓/🔒 toggle for shared devices and roadshows. When on, the estate is kept **in memory only** —
 any previously saved estate on the device is wiped and nothing new is written, so it disappears
 when the browser closes. The preference itself persists (so an agent's device stays private), and
 a **"Kosongkan sekarang"** action clears everything between sessions.
+
+### 9. Data: backup, restore & optional sync — *Data & Sandaran*
+All in the dashboard's *Data & Sandaran* panel; everything is **local-first** and the user owns their data.
+- **File backup / restore (JSON).** One tap downloads the whole estate as a `faraid-sandaran-<date>.json`
+  file (works even in Private Mode — it's how you keep a copy when nothing is persisted), and restore
+  reads one back. Restore is validated (`validBackup`/`normalizeState`) and confirmed before it replaces
+  the current data. This is the portable contract that moves data across browsers/devices.
+- **Google Drive sync (optional).** Layered on the *same* JSON contract, this backs up / restores to the
+  user's **own** Google Drive via **client-only OAuth** — *no backend, no accounts system, no app server*.
+  It uses the narrow `drive.file` scope (the app sees only the single backup file it creates) and shows a
+  "*Diselaras: …*" timestamp. The Drive UI stays hidden until the operator sets a public OAuth **Client ID**
+  (`DRIVE.clientId`); see the one-time GCP setup notes kept with the project plan. *No API key or client
+  secret is used.*
+- **Optional analytics.** Cookieless, privacy-friendly usage counts (Plausible/Umami-compatible) — **only
+  anonymous event names** (page opened, PDF generated, recommendation viewed, …), **never** estate data.
+  Off unless the operator sets `ANALYTICS.domain`; respects *Do Not Track*; suppressed in Private Mode; and
+  has an in-app opt-out checkbox.
 
 ---
 

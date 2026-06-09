@@ -304,6 +304,31 @@
   .complete-foot{font-size:.72rem;color:var(--muted);margin-top:9px;line-height:1.4}
   .complete-done{font-size:.84rem;color:var(--ok);font-weight:600;margin-top:2px}
 
+  /* ---- Estate Readiness Score — credit-score style headline gauge + dimension breakdown ---- */
+  .readiness-card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 18px;
+    display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+  .rs-gauge{flex:0 0 auto;width:104px;height:104px;border-radius:50%;display:grid;place-items:center;position:relative}
+  .rs-gauge::before{content:'';position:absolute;inset:11px;border-radius:50%;background:var(--card)}
+  .rs-gauge-inner{position:relative;text-align:center;line-height:1.05}
+  .rs-score{font-size:1.95rem;font-weight:800}
+  .rs-max{font-size:.72rem;color:var(--muted);font-weight:600}
+  .rs-gauge.good .rs-score{color:var(--ok)} .rs-gauge.mid .rs-score{color:#8a5a00} .rs-gauge.low .rs-score{color:#b71c1c}
+  .rs-main{flex:1 1 220px;min-width:0}
+  .rs-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+  .rs-title{font-weight:600;font-size:.95rem}
+  .rs-band{font-weight:700;font-size:.78rem;padding:2px 10px;border-radius:999px}
+  .rs-band.good{background:#eaf6ea;color:var(--ok)} .rs-band.mid{background:#fff4e0;color:#8a5a00} .rs-band.low{background:#fdecec;color:#b71c1c}
+  .rs-dims{display:flex;flex-direction:column;gap:7px}
+  .rs-dim{display:flex;align-items:center;gap:9px;width:100%;text-align:left;font:inherit;color:inherit;background:none;border:0;padding:2px 0;cursor:pointer}
+  .rs-dim .rs-ic{flex:0 0 auto;width:16px;text-align:center;font-size:.9rem}
+  .rs-dim.good .rs-ic{color:var(--ok)} .rs-dim.mid .rs-ic{color:#b6791a} .rs-dim.low .rs-ic{color:#c9433b}
+  .rs-dim .rs-lbl{flex:1 1 auto;font-size:.8rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rs-dim .rs-mini{flex:0 0 56px;height:6px;border-radius:4px;background:#ece9f3;overflow:hidden}
+  .rs-dim .rs-mini span{display:block;height:100%;border-radius:4px}
+  .rs-dim.good .rs-mini span{background:var(--ok)} .rs-dim.mid .rs-mini span{background:#e0a23b} .rs-dim.low .rs-mini span{background:#d9534f}
+  .rs-dim:hover .rs-lbl{text-decoration:underline}
+  .rs-foot{flex-basis:100%;font-size:.72rem;color:var(--muted);margin-top:4px;line-height:1.4}
+
   /* ---- Dashboard: distribution donut + legend ---- */
   .dash-dist-wrap{display:flex;flex-direction:column;align-items:center;gap:16px}
   @media(min-width:560px){ .dash-dist-wrap{flex-direction:row;align-items:center} .dash-dist-wrap .legend{flex:1} }
@@ -366,6 +391,12 @@
   .data-msg{font-size:.8rem;margin-top:10px;min-height:1em;line-height:1.4}
   .data-msg.ok{color:var(--ok)}
   .data-msg.err{color:#c62828}
+  /* ---- Optional integrations (Google Drive / analytics) in Data & Sandaran ---- */
+  .drive-row,.analytics-row{border-top:1px solid var(--line);margin-top:14px;padding-top:12px}
+  .integ-title{font-weight:600;font-size:.9rem}
+  .integ-status{font-size:.76rem;color:var(--muted);margin-top:9px}
+  .integ-optout{display:flex;gap:9px;align-items:flex-start;font-size:.84rem;cursor:pointer}
+  .integ-optout input{margin:2px 0 0;width:16px;height:16px;flex:0 0 auto;cursor:pointer}
 
   /* ---- Scenario comparison (before vs after hibah) ---- */
   .modal.wide{max-width:560px}
@@ -465,6 +496,7 @@
       <div class="health" id="dashHealth" style="display:none"></div>
     </div>
 
+    <div id="dashReadiness"></div>
     <div id="dashInsight" class="insight-row"></div>
     <div id="dashComplete"></div>
 
@@ -507,6 +539,8 @@
       </div>
       <input type="file" id="restoreFile" accept="application/json,.json" hidden />
       <div class="data-msg" id="dataMsg" role="status" aria-live="polite"></div>
+      <div id="driveRow" class="drive-row" style="display:none"></div>
+      <div id="analyticsRow" class="analytics-row" style="display:none"></div>
     </div>
 
     <p class="disclaimer">
@@ -1258,7 +1292,7 @@ function exportBackup(){
     const a=document.createElement('a'); a.href=url; a.download='faraid-sandaran-'+ymd+'.json';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),1000);
-    dataMsg('Sandaran disimpan ke fail.', false);
+    dataMsg('Sandaran disimpan ke fail.', false); track('backup_file');
   }catch(e){ dataMsg('Gagal menyimpan sandaran.', true); }
 }
 function importBackup(file){
@@ -1273,6 +1307,7 @@ function importBackup(file){
     save();                       // no-op in Private Mode; the data still loads for this session
     showView('dashboard');
     dataMsg(privateMode?'Data dipulihkan (Mod Privasi: tidak disimpan ke peranti).':'Data berjaya dipulihkan.', false);
+    track('restore_file');
   };
   reader.onerror=()=>dataMsg('Gagal membaca fail.', true);
   reader.readAsText(file);
@@ -1612,8 +1647,10 @@ function renderDashboard(){
 
   const sig=buildFunnelSignals();
   renderHealth(gross,debt,net,sig);
+  renderDashReadiness();
   renderDashInsight(sig);
   renderDashCompleteness();
+  renderDataIntegrations();
 
   // distribution: donut + legend + base
   const res=solveFaraid(state.sel);
@@ -1741,9 +1778,88 @@ function renderDashCompleteness(){
   el.querySelectorAll('.complete-chip').forEach(b=>b.onclick=()=>showView(b.dataset.go));
 }
 
+/* Estate Readiness Score — one 0–100 "Kesediaan Harta Islam" gauge (credit-score style)
+   composed from signals & completeness we already compute. Each dimension is a 0..1
+   sub-score with a weight; the breakdown doubles as a "what's missing" action list that
+   jumps to the relevant view. Pure-ish (reads state via the same dashboard helpers);
+   render-only, not part of the faraid engine. Reused by the PDF report. */
+function estateReadiness(){
+  const s=buildFunnelSignals();
+  const comp=estateCompleteness();
+  const hibahN=hibahActiveCount();
+  const dims=[];
+  const add=(id,label,go,score)=>dims.push({id,label,go,score:Math.max(0,Math.min(1,score))});
+
+  add('heirs','Waris dikenal pasti','faraid', s.noHeirs?0:1);
+  add('docs','Maklumat harta lengkap','assets', comp.pct/100);
+
+  let debtScore;                                   // deductible debt is by definition uninsured
+  if(s.underwater) debtScore=0;
+  else if(s.debt<=0) debtScore=1;
+  else if(s.uninsuredPropertyLoan) debtScore=0.25;
+  else if(s.debtRatio>=0.5) debtScore=0.45;
+  else if(s.debtRatio>=0.25) debtScore=0.7;
+  else debtScore=0.9;
+  add('debt','Perlindungan hutang','assets', debtScore);
+
+  add('liquid','Kecairan tunai','assets', s.liquidRatio/0.3);
+
+  let prot=1;                                      // Baitulmal leakage & under-protected spouse/daughters
+  if(s.baitulmalPct>0) prot=Math.min(prot, 1 - s.baitulmalPct/50);
+  if(s.hasSpouse && !s.hasDescendant) prot-=0.25;
+  if(s.hasDaughter && !s.hasMaleDescendant) prot-=0.2;
+  if(hibahN>0) prot+=0.25;                          // a saved hibah plan mitigates the leakage
+  add('protect','Perlindungan waris','perancangan', prot);
+
+  add('plan','Tindakan perancangan','perancangan', (hibahN>0?0.5:0)+(s.hasTakafulHibah?0.5:0));
+
+  const W={heirs:1, docs:1.5, debt:2, liquid:1, protect:2, plan:1.5};
+  let num=0,den=0; dims.forEach(d=>{ num+=W[d.id]*d.score; den+=W[d.id]; });
+  const score=Math.round(num/den*100);
+  let band;
+  if(score>=80) band={label:'Cemerlang', cls:'good'};
+  else if(score>=60) band={label:'Baik', cls:'good'};
+  else if(score>=40) band={label:'Sederhana', cls:'mid'};
+  else band={label:'Perlu Perhatian', cls:'low'};
+  dims.forEach(d=>{ d.status = d.score>=0.8?'good':(d.score>=0.45?'mid':'low'); });
+  return {score, band, dims, empty: s.noHeirs && s.gross<=0};
+}
+function renderDashReadiness(){
+  const el=document.getElementById('dashReadiness'); if(!el) return;
+  const r=estateReadiness();
+  if(r.empty){
+    el.innerHTML=`<div class="readiness-card"><div class="rs-main">
+        <div class="rs-head"><span class="rs-title">Skor Kesediaan Harta Islam</span></div>
+        <p class="rs-foot" style="margin-top:0">Pilih waris &amp; isi aset untuk dapatkan skor kesediaan harta anda — sejauh mana keluarga anda terlindung jika berlaku kematian.</p>
+      </div></div>`;
+    return;
+  }
+  const deg=Math.round(r.score*3.6);
+  const ringCol={good:'var(--ok)', mid:'#e0a23b', low:'#d9534f'}[r.band.cls];
+  const ic={good:'✓', mid:'•', low:'⚠'};
+  const rows=r.dims.map(d=>
+    `<button class="rs-dim ${d.status}" data-go="${d.go}" title="Buka untuk perbaiki">
+       <span class="rs-ic">${ic[d.status]}</span>
+       <span class="rs-lbl">${escapeHtml(d.label)}</span>
+       <span class="rs-mini"><span style="width:${Math.round(d.score*100)}%"></span></span>
+     </button>`).join('');
+  el.innerHTML=
+    `<div class="readiness-card">
+       <div class="rs-gauge ${r.band.cls}" style="background:conic-gradient(${ringCol} ${deg}deg, #ece9f3 ${deg}deg)" role="img" aria-label="Skor kesediaan harta ${r.score} daripada 100">
+         <div class="rs-gauge-inner"><div class="rs-score">${r.score}</div><div class="rs-max">/100</div></div>
+       </div>
+       <div class="rs-main">
+         <div class="rs-head"><span class="rs-title">Skor Kesediaan Harta Islam</span><span class="rs-band ${r.band.cls}">${r.band.label}</span></div>
+         <div class="rs-dims">${rows}</div>
+       </div>
+       <div class="rs-foot">Gabungan kelengkapan maklumat, perlindungan hutang, kecairan &amp; perlindungan waris. Tekan mana-mana item untuk perbaiki.</div>
+     </div>`;
+  el.querySelectorAll('.rs-dim').forEach(b=>b.onclick=()=>showView(b.dataset.go));
+}
+
 /* ---- Print / PDF report (built on demand, then window.print()) ----
    Spouse-shareable: each risk is paired with an action so the report can render a prominent
-   "Ringkasan Risiko" up top and an "Apa Boleh Dibuat Sekarang" action list. */
+   "Jika Berlaku Kematian Hari Ini" risk block up top and an "Apa Boleh Dibuat Sekarang" action list. */
 function printRisks(s){
   const out=[];                                  // {risk, action}
   if(s.noHeirs) return out;
@@ -1777,6 +1893,7 @@ function buildPrintReport(){
   const sig=buildFunnelSignals();
   const gross=grossTotal(), debt=debtTotal(), net=netTotal();
   const comp=estateCompleteness();
+  const rd=estateReadiness();
   const dateStr=new Date().toLocaleDateString('ms-MY',{day:'numeric',month:'long',year:'numeric'});
 
   const risks=printRisks(sig);
@@ -1789,7 +1906,7 @@ function buildPrintReport(){
   // Prominent risk summary up top — the emotional hook for sharing with spouse/family.
   if(res.rows.length>0){
     if(risks.length){
-      html+=`<div class="pr-risks"><h2>⚠ Ringkasan Risiko</h2><ul>`;
+      html+=`<div class="pr-risks"><h2>⚠ Jika Berlaku Kematian Hari Ini</h2><ul>`;
       risks.forEach(r=>html+=`<li>${escapeHtml(r.risk)}</li>`);
       html+=`</ul></div>`;
     } else {
@@ -1802,6 +1919,7 @@ function buildPrintReport(){
       ${debt>0?`<tr><td>(−) Hutang ditolak (tanpa insurans)</td><td>−${RM0.format(debt)}</td></tr>`:''}
       <tr class="pr-strong"><td>Harta bersih boleh dibahagi</td><td>${RM0.format(net)}</td></tr>
       <tr><td>Kelengkapan maklumat harta</td><td>${comp.pct}%</td></tr>
+      ${!rd.empty?`<tr><td>Skor kesediaan harta</td><td>${rd.score}/100 (${escapeHtml(rd.band.label)})</td></tr>`:''}
     </table></div>`;
 
   html+=`<div class="pr-section"><h2>Agihan Faraid</h2>`;
@@ -2197,7 +2315,7 @@ function primaryCard(entry){
   const cta=document.createElement('div'); cta.className='funnel-cta';
   const get=document.createElement('a'); get.className='btn primary';
   get.textContent='Dapatkan Sebut Harga'; get.href=ctaHref(entry.product);
-  get.target='_blank'; get.rel='noopener';
+  get.target='_blank'; get.rel='noopener'; get.onclick=()=>track('cta', {product:entry.product});
   const learn=document.createElement('button'); learn.className='btn ghost';
   learn.textContent='Pelajari →'; learn.onclick=()=>openFunnelModal(entry.product);
   cta.append(get,learn);
@@ -2246,6 +2364,8 @@ function openFunnelModal(productKey){
   document.getElementById('fmConfigWarn').style.display=(FUNNEL.leadMode==='whatsapp' && !waConfigured() && !p.url)?'block':'none';
   const cta=document.getElementById('fmCta');
   cta.href=ctaHref(productKey); cta.target='_blank'; cta.rel='noopener';
+  cta.onclick=()=>track('cta', {product:productKey});
+  track('recommendation', {product:productKey});
   openOverlay(funnelModal);
 }
 function closeFunnelModal(){ closeOverlay(funnelModal); }
@@ -2635,10 +2755,190 @@ document.getElementById('loanSort').onchange=function(){ loanSort=this.value; re
 /* ============================================================
    Navigation + wiring
    ============================================================ */
+/* ============================================================
+   OPTIONAL INTEGRATIONS — analytics + Google Drive sync.
+   Both live here in the IO/boot region, OUTSIDE the test engine/asset slices, and are
+   OFF until the operator fills in config. Privacy stance: nothing here EVER sends estate
+   data (RM amounts, heirs, names). Analytics sends only anonymous funnel event NAMES;
+   Drive stores the user's own backup JSON to THEIR Drive via client-only OAuth (no backend).
+   ============================================================ */
+
+/* ---- Privacy-friendly, cookieless analytics (Plausible / Umami compatible) ----
+   Set `domain` + `src` to enable; leave blank to keep analytics OFF. Respects the
+   browser's Do-Not-Track, Private Mode, and a user opt-out. Only event NAMES + coarse
+   non-PII labels are sent — never estate data. */
+const ANALYTICS = {
+  domain: '',                                              // your site domain, e.g. 'faraid.example.com'
+  src: 'https://plausible.io/js/script.tagged-events.js',  // Plausible, or your self-hosted Umami/Plausible URL
+};
+const ANALYTICS_OPTOUT_KEY='faraid_analytics_optout';
+let analyticsOptOut=false, analyticsLoaded=false;
+function dntOn(){ try{ return navigator.doNotTrack=='1'||window.doNotTrack=='1'||navigator.msDoNotTrack=='1'; }catch(e){ return false; } }
+function analyticsConfigured(){ return !!ANALYTICS.domain; }
+function analyticsEnabled(){ return analyticsConfigured() && !analyticsOptOut && !dntOn(); }
+function analyticsInit(){
+  try{ analyticsOptOut = localStorage.getItem(ANALYTICS_OPTOUT_KEY)==='1'; }catch(e){}
+  if(!analyticsEnabled() || analyticsLoaded) return;
+  window.plausible=window.plausible||function(){ (window.plausible.q=window.plausible.q||[]).push(arguments); };
+  const s=document.createElement('script');
+  s.defer=true; s.src=ANALYTICS.src; s.setAttribute('data-domain', ANALYTICS.domain);
+  document.head.appendChild(s);
+  analyticsLoaded=true;
+}
+/* Fire an anonymous event. NEVER pass estate data — only event names + coarse labels. */
+function track(event, props){
+  try{
+    if(!analyticsEnabled() || privateMode) return;         // honour Private Mode: nothing leaves the device
+    if(typeof window.plausible==='function') window.plausible(event, props?{props}:undefined);
+  }catch(e){}
+}
+function setAnalyticsOptOut(on){
+  analyticsOptOut=on;
+  try{ if(on) localStorage.setItem(ANALYTICS_OPTOUT_KEY,'1'); else localStorage.removeItem(ANALYTICS_OPTOUT_KEY); }catch(e){}
+  if(!on) analyticsInit();
+  renderDataIntegrations();
+}
+
+/* ---- Google Drive sync — the user's OWN cloud (client-only OAuth, no backend) ----
+   Layered on the same JSON contract as file Backup/Restore (validBackup / normalizeState).
+   Set DRIVE.clientId to a GCP OAuth *Web* client ID (PUBLIC; no secret) with scope
+   drive.file to enable; the Drive UI stays hidden until it's set. One-time GCP setup is
+   documented in ignore/PLAN.md §13. `drive.file` means the app can only see the one
+   backup file it creates — it cannot read the rest of the user's Drive. */
+const DRIVE = { clientId: '' };
+const DRIVE_FILE_NAME='faraid-sandaran.json';
+const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.file';
+const DRIVE_SYNCED_KEY='faraid_drive_synced';
+let gisLoaded=false, driveTokenClient=null, driveToken=null, driveBusy=false, driveResolve=null, driveReject=null;
+
+function driveConfigured(){ return !!DRIVE.clientId; }
+function driveLoadGis(){
+  if(!driveConfigured() || gisLoaded) return;
+  const s=document.createElement('script'); s.src='https://accounts.google.com/gsi/client'; s.async=true; s.defer=true;
+  s.onload=()=>{ gisLoaded=true; };
+  document.head.appendChild(s);
+}
+/* Resolve a fresh access token (Google shows its consent/account popup on first grant). */
+function driveGetToken(){
+  return new Promise((resolve,reject)=>{
+    if(!driveConfigured()) return reject(new Error('Google Drive belum dikonfigur.'));
+    if(!(window.google&&google.accounts&&google.accounts.oauth2)) return reject(new Error('Google belum dimuatkan — cuba lagi sebentar.'));
+    driveResolve=resolve; driveReject=reject;                // the single persistent callback resolves the latest call
+    if(!driveTokenClient){
+      driveTokenClient=google.accounts.oauth2.initTokenClient({
+        client_id:DRIVE.clientId, scope:DRIVE_SCOPE,
+        callback:(resp)=>{ if(resp&&resp.access_token){ driveToken=resp.access_token; driveResolve&&driveResolve(driveToken); }
+                           else (driveReject||(()=>{}))(new Error('Tiada kebenaran Drive diberi.')); },
+        error_callback:()=>{ (driveReject||(()=>{}))(new Error('Log masuk Google dibatalkan.')); },
+      });
+    }
+    driveTokenClient.requestAccessToken({prompt:''});        // '' = reuse an existing grant silently, else prompt
+  });
+}
+function driveHeaders(){ return { 'Authorization':'Bearer '+driveToken }; }
+/* Find our backup file (drive.file scope only sees files this app created). */
+async function driveFind(){
+  const q=encodeURIComponent(`name='${DRIVE_FILE_NAME}' and trashed=false`);
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&spaces=drive&fields=files(id,modifiedTime)`,{headers:driveHeaders()});
+  if(!r.ok) throw new Error('Drive: gagal mencari fail ('+r.status+').');
+  const j=await r.json();
+  return (j.files&&j.files[0])||null;
+}
+async function driveUpload(id, jsonStr){
+  const meta={ name:DRIVE_FILE_NAME, mimeType:'application/json' };
+  const boundary='faraidbound'+Date.now();
+  const body=`--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n`+
+             `--${boundary}\r\nContent-Type: application/json\r\n\r\n${jsonStr}\r\n--${boundary}--`;
+  const base='https://www.googleapis.com/upload/drive/v3/files';
+  const url=id?`${base}/${id}?uploadType=multipart&fields=id,modifiedTime`:`${base}?uploadType=multipart&fields=id,modifiedTime`;
+  const r=await fetch(url,{ method:id?'PATCH':'POST',
+    headers:Object.assign(driveHeaders(),{'Content-Type':'multipart/related; boundary='+boundary}), body });
+  if(!r.ok) throw new Error('Drive: gagal memuat naik ('+r.status+').');
+  return r.json();
+}
+async function driveDownload(id){
+  const r=await fetch(`https://www.googleapis.com/drive/v3/files/${id}?alt=media`,{headers:driveHeaders()});
+  if(!r.ok) throw new Error('Drive: gagal memuat turun ('+r.status+').');
+  return r.json();
+}
+function driveSetSynced(){ try{ localStorage.setItem(DRIVE_SYNCED_KEY, new Date().toISOString()); }catch(e){} }
+function driveSyncedLabel(){
+  try{ const v=localStorage.getItem(DRIVE_SYNCED_KEY); if(!v) return '';
+    const d=new Date(v);
+    return 'Diselaras: '+d.toLocaleDateString('ms-MY',{day:'numeric',month:'short',year:'numeric'})+', '+d.toLocaleTimeString('ms-MY',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){ return ''; }
+}
+async function driveBackup(){
+  if(driveBusy) return; driveBusy=true; dataMsg('Menyambung ke Google Drive…');
+  try{
+    await driveGetToken();
+    const existing=await driveFind();
+    await driveUpload(existing?existing.id:null, JSON.stringify(state,null,2));
+    driveSetSynced();
+    dataMsg('Sandaran disimpan ke Google Drive anda.', false);
+    track('drive_backup'); renderDataIntegrations();
+  }catch(e){ dataMsg(e.message||'Gagal menyimpan ke Drive.', true); }
+  finally{ driveBusy=false; }
+}
+async function driveRestore(){
+  if(driveBusy) return; driveBusy=true; dataMsg('Menyambung ke Google Drive…');
+  try{
+    await driveGetToken();
+    const existing=await driveFind();
+    if(!existing){ dataMsg('Tiada sandaran dijumpai di Drive anda.', true); return; }
+    const parsed=await driveDownload(existing.id);
+    if(!validBackup(parsed)){ dataMsg('Fail di Drive bukan sandaran Kalkulator Faraid yang sah.', true); return; }
+    if(!confirm('Pulih data dari Google Drive? Data semasa pada peranti ini akan diganti.')) return;
+    state=normalizeState(parsed); ensureIds(); exampleData=false;
+    save(); driveSetSynced();
+    showView('dashboard');
+    dataMsg(privateMode?'Data dipulihkan dari Drive (Mod Privasi: tidak disimpan ke peranti).':'Data dipulihkan dari Google Drive.', false);
+    track('drive_restore');
+  }catch(e){ dataMsg(e.message||'Gagal memulihkan dari Drive.', true); }
+  finally{ driveBusy=false; renderDataIntegrations(); }
+}
+
+/* Render the optional Drive + analytics controls into the "Data & Sandaran" panel.
+   Each row only appears when its integration is configured by the operator. */
+function renderDataIntegrations(){
+  const dr=document.getElementById('driveRow');
+  if(dr){
+    if(!driveConfigured()){ dr.style.display='none'; dr.innerHTML=''; }
+    else{
+      dr.style.display='block';
+      const synced=driveSyncedLabel();
+      dr.innerHTML=
+        `<div class="integ-title">☁️ Google Drive (awan anda sendiri)</div>
+         <p class="hint" style="margin:6px 0 10px">Sandar atau pulih data ke <strong>Google Drive anda sendiri</strong> — disimpan dalam akaun Drive anda, bukan pelayan kami. Berguna untuk merentas pelayar/peranti.</p>
+         <div class="data-actions">
+           <button class="btn ghost" id="driveBackupBtn">☁️ Sandar ke Drive</button>
+           <button class="btn ghost" id="driveRestoreBtn">⬇️ Pulih dari Drive</button>
+         </div>
+         ${synced?`<div class="integ-status">${escapeHtml(synced)}</div>`:''}`;
+      dr.querySelector('#driveBackupBtn').onclick=driveBackup;
+      dr.querySelector('#driveRestoreBtn').onclick=driveRestore;
+    }
+  }
+  const ar=document.getElementById('analyticsRow');
+  if(ar){
+    if(!analyticsConfigured()){ ar.style.display='none'; ar.innerHTML=''; }
+    else{
+      ar.style.display='block';
+      const dnt=dntOn(), off=analyticsOptOut||dnt;
+      ar.innerHTML=
+        `<label class="integ-optout"><input type="checkbox" id="analyticsOptOut" ${off?'checked':''} ${dnt?'disabled':''}/>
+           <span>Jangan kumpul statistik penggunaan tanpa nama${dnt?' — telah dimatikan oleh tetapan "Do Not Track" pelayar anda':''}</span></label>
+         <p class="hint" style="margin:8px 0 0">Kami hanya mengira tindakan <strong>tanpa nama</strong> (cth. halaman dibuka, PDF dijana) untuk menambah baik aplikasi. <strong>Tiada data harta, jumlah RM, atau nama waris</strong> dihantar.</p>`;
+      const cb=ar.querySelector('#analyticsOptOut'); if(cb && !dnt) cb.onchange=()=>setAnalyticsOptOut(cb.checked);
+    }
+  }
+}
+
 function showView(name, replace){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
   window.scrollTo(0,0);
+  track('view', {name});
   if(name==='dashboard') renderDashboard();
   if(name==='faraid') renderFaraid();
   if(name==='assets') renderAssets();
@@ -2660,7 +2960,7 @@ document.getElementById('backDashFaraid').onclick=()=>showView('dashboard');
 document.getElementById('backDashAssets').onclick=()=>showView('dashboard');
 document.getElementById('toAssets').onclick=()=>showView('assets');
 document.getElementById('addAssetBtn').onclick=openModal;
-document.getElementById('printBtn').onclick=()=>{ buildPrintReport(); window.print(); };
+document.getElementById('printBtn').onclick=()=>{ track('pdf'); buildPrintReport(); window.print(); };
 document.getElementById('privacyBtn').onclick=togglePrivate;
 document.getElementById('textSizeBtn').onclick=cycleTextSize;
 document.getElementById('backupBtn').onclick=exportBackup;
@@ -2679,6 +2979,10 @@ load();
 loadTextSize();
 renderPrivacyBanner();
 enhanceSwitches();
+analyticsInit();          // optional, off unless ANALYTICS.domain is configured
+driveLoadGis();           // optional, no-op unless DRIVE.clientId is configured
+renderDataIntegrations();
+track('app_open');
 renderFaraid();
 window.addEventListener('load',()=>{
   setTimeout(()=>{
