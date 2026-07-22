@@ -916,6 +916,7 @@ function solveFaraid(sel){
   const reasons={};                      // id -> short Malay "Sebab" string (per-heir explainability)
   const why=(id,txt)=>{ reasons[id]=txt; };
   let baitulmal=ZERO;                    // declared early: Umariyyatān path returns before Phase C
+  let asabahTaken=false;                 // did a residuary actually claim the residue? (drives the "why nothing" copy)
 
   /* ---- Phase A: blocking (hijab) for furud heirs ---- */
   const blocked={};
@@ -951,6 +952,20 @@ function solveFaraid(sel){
 
   const hasSiblings = effBk||effSk||effBt||effSt;
   const sibCountAll = cnt('ss')+cnt('bk')+cnt('sk')+cnt('bt')+cnt('st'); // counts even if mahjub (affects mother)
+  const spouse = has('s')?'s':(has('is')?'is':null);
+
+  /* With a grandfather, surviving siblings are his muqāsamah partners (asabah maʿa-l-jadd),
+     not furud heirs: gfSiblings() splits the residue between them, so the sisters must NOT
+     also take a fixed 1/2 or 2/3 in Phase B. Akdariyyah is the one exception. */
+  const sisCount = cnt('sk')+cnt('st');
+  /* Akdariyyah — husband + mother + grandfather + exactly one (full or consanguine) sister.
+     Ordinary muqāsamah leaves her nothing here (the grandfather's 1/6 floor swallows the whole
+     1/6 residue), but a sister is never excluded by a grandfather. Classical rule: she takes
+     her 1/2 fardu, the case 'auls, then her share and the grandfather's are pooled and
+     redivided 2:1. With a wife the residue is larger and she is not excluded, so that case
+     stays on the ordinary muqāsamah path. */
+  const akdariyyah = spouse==='s' && has('i') && effD && !hasDesc && sisCount===1 && sibCountAll===1;
+  const gfMuqasamah = effD && hasSiblings && !akdariyyah;
 
   /* ---- Per-heir "Sebab" for selected heirs that end up blocked (mahjub) ---- */
   const sibBlocker = has('b')?'Bapa':(has('al')?'Anak Lelaki':'Cucu Lelaki');
@@ -965,10 +980,17 @@ function solveFaraid(sel){
   if(has('bt') && blocked.bt)  why('bt', 'Terhalang oleh waris yang lebih utama (Bapa / Anak/Cucu Lelaki / adik-beradik kandung).');
   if(has('st') && blocked.st)  why('st', 'Terhalang oleh waris yang lebih utama.');
 
-  /* ---- Special case: Umariyyatān (spouse + mother + father only) ---- */
+  /* ---- Special case: Umariyyatān (spouse + mother + father) ----
+     Applies whenever the *inheriting* set is exactly {spouse, mother, father}. Other heirs may
+     be selected as long as they take nothing here — a grandparent/grandchild/sibling the parents
+     block, or a distant asabah the father shuts out — because they cannot change the ruling.
+     Two or more siblings DO change it (they cut the mother to a flat 1/6), so that case falls
+     through to the ordinary path below. */
   const selectedIds=HEIRS.map(h=>h.id).filter(has);
-  const spouse = has('s')?'s':(has('is')?'is':null);
-  if(spouse && has('i') && has('b') && selectedIds.length===3){
+  const DISTANT_ASABAH={nk:1,nt:1,uk:1,ut:1,ck:1,ct:1};      // all shut out by the father
+  const umariOthers=selectedIds.filter(id=>id!=='i'&&id!=='b'&&id!==spouse);
+  if(spouse && has('i') && has('b') && !hasDesc && sibCountAll<2 &&
+     umariOthers.every(id=>blocked[id]===true||DISTANT_ASABAH[id])){
     const sp = spouse==='s'?F(1,2):F(1,4);
     shares[spouse]=sp;
     const rem=fs(ONE,sp);
@@ -1002,12 +1024,12 @@ function solveFaraid(sel){
   if(effSs){ shares.ss = cnt('ss')>=2?F(1,3):F(1,6);
     why('ss', cnt('ss')>=2?'Dua atau lebih adik-beradik seibu → 1/3 (dikongsi sama rata).':'Seorang adik-beradik seibu → 1/6.'); }
 
-  if(effSk && !effBk && !fullSisResiduary){
+  if(effSk && !effBk && !fullSisResiduary && !gfMuqasamah){
     shares.sk = cnt('sk')>=2?F(2,3):F(1,2);
     why('sk', cnt('sk')>=2?'Dua atau lebih, tiada keturunan/bapa → 2/3 (dikongsi).':'Seorang, tiada keturunan/bapa → 1/2.');
   }
 
-  if(effSt && !effBt && !consSisResiduary){
+  if(effSt && !effBt && !consSisResiduary && !gfMuqasamah){
     if(effSk && !effBk && !fullSisResiduary){
       if(cnt('sk')===1){ shares.st=F(1,6); why('st','Melengkapkan 2/3 bersama adik-beradik perempuan kandung → 1/6.'); }   // complete 2/3 with one full sister
     } else {
@@ -1017,7 +1039,13 @@ function solveFaraid(sel){
   }
 
   if(has('b')){ if(hasDesc){ shares.b=F(1,6); why('b','Ada keturunan → 1/6 (fardu).'); } }   // father 1/6 when descendant (else pure asabah)
-  else if(effD){ if(hasDesc && !hasSiblings){ shares.d=F(1,6); why('d','Ada keturunan → 1/6 (fardu).'); } }
+  else if(effD){
+    // With siblings the grandfather's share comes from gfSiblings() (whose 1/6 floor already
+    // covers this fardu), so it is only assigned here when he is not sharing with them —
+    // or in Akdariyyah, where the 1/6 is what the case 'auls on.
+    if(akdariyyah){ shares.d=F(1,6); why('d','Datuk mengambil 1/6 (fardu) dalam kes Akdariyyah.'); }
+    else if(hasDesc && !hasSiblings){ shares.d=F(1,6); why('d','Ada keturunan → 1/6 (fardu).'); }
+  }
 
   /* ---- Phase C: 'aul / asabah / radd ---- */
   let sumF=Object.keys(shares).reduce((a,k)=>fa(a,shares[k]),ZERO);
@@ -1026,20 +1054,24 @@ function solveFaraid(sel){
     // 'Aul — scale all furud down proportionally
     Object.keys(shares).forEach(k=>shares[k]=fd(shares[k],sumF));
     notes.push("Kes 'Aul — jumlah bahagian melebihi harta; semua bahagian dikecilkan secara berkadar.");
+    if(akdariyyah) applyAkdariyyah();
   } else {
     let residue=fs(ONE,sumF);
     if(fzero(residue)){
       if(effBk && effSs) applyMushtaraka();                // Himariyyah / Musytarakah
-    } else if(!assignAsabah(residue)){
-      // no asabah -> radd to non-spouse furud, else Baitulmal
-      const nonSp=Object.keys(shares).filter(k=>k!=='s'&&k!=='is');
-      const sumNon=nonSp.reduce((a,k)=>fa(a,shares[k]),ZERO);
-      if(!fzero(sumNon)){
-        nonSp.forEach(k=>{ shares[k]=fa(shares[k],fm(residue,fd(shares[k],sumNon))); why(k,(reasons[k]?reasons[k]+' ':'')+'Lebihan dikembalikan (radd).'); });
-        notes.push("Kes Radd — lebihan dikembalikan kepada waris (pasangan tidak menerima radd).");
-      } else {
-        baitulmal=residue;
-        notes.push("Tiada waris asabah atau penerima radd — lebihan diserahkan kepada Baitulmal.");
+    } else {
+      asabahTaken=assignAsabah(residue);
+      if(!asabahTaken){
+        // no asabah -> radd to non-spouse furud, else Baitulmal
+        const nonSp=Object.keys(shares).filter(k=>k!=='s'&&k!=='is');
+        const sumNon=nonSp.reduce((a,k)=>fa(a,shares[k]),ZERO);
+        if(!fzero(sumNon)){
+          nonSp.forEach(k=>{ shares[k]=fa(shares[k],fm(residue,fd(shares[k],sumNon))); why(k,(reasons[k]?reasons[k]+' ':'')+'Lebihan dikembalikan (radd).'); });
+          notes.push("Kes Radd — lebihan dikembalikan kepada waris (pasangan tidak menerima radd).");
+        } else {
+          baitulmal=residue;
+          notes.push("Tiada waris asabah atau penerima radd — lebihan diserahkan kepada Baitulmal.");
+        }
       }
     }
   }
@@ -1073,6 +1105,17 @@ function solveFaraid(sel){
     if(u>0){ if(m>0){shares[bro]=fm(rem,F(2*m,u)); why(bro,'Baki bersama datuk secara muqasamah.');} if(f>0){shares[sis]=fm(rem,F(f,u)); why(sis,'Baki bersama datuk secara muqasamah.');} }
     else shares.d=fa(shares.d,rem);
     notes.push("Datuk berkongsi dengan adik-beradik (muqasamah / 1/3 baki / 1/6 — mana lebih baik untuk datuk).");
+  }
+  /* Akdariyyah, second half: the grandfather's and the sister's post-'aul shares are pooled
+     and split 2:1, so she is neither excluded nor left ahead of him. */
+  function applyAkdariyyah(){
+    const sis = effSk?'sk':'st';
+    const pool = fa(shares.d||ZERO, shares[sis]||ZERO);
+    shares.d      = fm(pool,F(2,3));
+    shares[sis]   = fm(pool,F(1,3));
+    why('d','Bahagian datuk & saudara perempuan digabung, dibahagi 2:1 (kes Akdariyyah).');
+    why(sis,'Fardu 1/2 (kes berʿaul), kemudian digabung dengan bahagian datuk dan dibahagi 2:1 (kes Akdariyyah).');
+    notes.push('Kes Akdariyyah — saudara perempuan mengambil fardu 1/2 (kes berʿaul), kemudian bahagiannya digabung dengan datuk dan dibahagi 2:1.');
   }
   function applyMushtaraka(){
     const u=shares.ss;
@@ -1114,15 +1157,31 @@ function solveFaraid(sel){
       {id:'baitulmal',label:'Baitulmal',count:1,frac:baitulmal,percent:fval(baitulmal)*100,siham:baitulmal.n*(base/baitulmal.d),
        reason:'Tiada waris asabah atau penerima radd — lebihan kepada Baitulmal.'};
     const blockedIds=HEIRS.filter(h=>(sel[h.id]>0)&&(!shares[h.id]||fzero(shares[h.id]))).map(h=>h.id);
+    // Being mahjub (a nearer heir blocks you outright) is not the same as being a residuary with
+    // no residue left, so the "Tidak menerima" panel must not call the second one "terhalang".
+    const noShareReason=id=>
+      blocked[id]===true ? 'Tidak menerima — waris lain lebih utama (mahjub).'
+      : asabahTaken      ? 'Tidak menerima — waris asabah yang lebih hampir mengambil baki.'
+      :                    'Tidak menerima — tiada baki selepas bahagian tetap (fardu) diagihkan.';
+    // Only a Phase-A mahjub reason survives here: any reason recorded later describes a share
+    // that was received, and would read as nonsense next to an heir who ended up with nothing.
     const blockedRows=blockedIds.map(id=>({id,label:HEIR_LABEL[id],count:cnt(id),
-      reason:reasons[id]||'Tidak menerima — waris lain lebih utama (mahjub).'}));
+      reason:(blocked[id]===true&&reasons[id])?reasons[id]:noShareReason(id)}));
     // ---- confidence / risk level (visible trust signal; engine knows which cases are intricate or unsupported) ----
-    const sisters=cnt('sk')+cnt('st');
-    const muaddah    = effD && (effBk||effSk) && (cnt('bt')>0 || cnt('st')>0);   // grandfather + full AND consanguine siblings
-    const akdariyyah = !!spouse && has('i') && effD && !hasDesc && sisters>0 && cnt('bk')===0 && cnt('bt')===0; // spouse+mother+grandfather+sister
+    const muaddah = effD && (effBk||effSk) && (cnt('bt')>0 || cnt('st')>0);   // grandfather + full AND consanguine siblings
     let confidence='standard';
-    if(muaddah || akdariyyah) confidence='review';
+    if(muaddah) confidence='review';
     else if((effD && hasSiblings) || fullSisResiduary || consSisResiduary || (effBk && effSs)) confidence='complex';
+    // Safety net: a split that does not add up to exactly the whole estate is never presented as
+    // trustworthy, whatever else the case looks like. This should never fire (test.mjs fuzzes the
+    // invariant over the whole heir space) — it exists so an unforeseen combination degrades to an
+    // honest "consult an expert" instead of a confident wrong answer.
+    let total=baitulmal;
+    Object.keys(shares).forEach(k=>{ total=fa(total,shares[k]); });
+    if(rows.length && !(total.n===1 && total.d===1)){
+      confidence='review';
+      notes.push('Amaran: jumlah bahagian tidak menyamai keseluruhan harta ('+ffmt(total)+'). Kes ini di luar keupayaan pengiraan alat — sila rujuk pakar faraid bertauliah.');
+    }
     const CONF_NOTE={
       standard:'Kes biasa — semua waris disokong oleh pengiraan ini.',
       complex:'Kes agak kompleks (mis. datuk berkongsi dengan adik-beradik, atau saudara perempuan sebagai asabah). Pengiraan disokong, tetapi elok disemak dengan pakar faraid.',
@@ -1253,10 +1312,16 @@ function seedDefaults(){
 function load(){
   try{ privateMode = localStorage.getItem(PRIV_KEY)==='1'; }catch(e){}
   if(privateMode){ seedDefaults(); ensureIds(); return; } // private: never read a saved estate; fresh each session
-  try{
-    const r=localStorage.getItem(STORE_KEY);
-    if(r){ state=Object.assign(state,JSON.parse(r)); if(!state.bills)state.bills=[]; if(!state.billLog)state.billLog={}; if(!state.hibah)state.hibah={}; ensureIds(); return; }
-  }catch(e){ return; }
+  let raw=null;
+  try{ raw=localStorage.getItem(STORE_KEY); }catch(e){}
+  if(raw){
+    try{
+      const parsed=JSON.parse(raw);
+      if(validBackup(parsed)){ state=normalizeState(parsed); ensureIds(); return; }
+    }catch(e){}
+    // Unreadable saved estate: fall through to the sample rather than booting into a blank app with
+    // no explanation. Nothing is overwritten until the user's first edit calls save().
+  }
   seedDefaults(); ensureIds(); // no stored state yet → first run
 }
 function save(){ exampleData=false; if(privateMode) return; try{localStorage.setItem(STORE_KEY,JSON.stringify(state));}catch(e){} }
@@ -1274,14 +1339,79 @@ function validBackup(o){
   return !!o && typeof o==='object' && !Array.isArray(o) &&
     ('sel' in o || 'assets' in o || 'loans' in o || 'bills' in o || 'hibah' in o);
 }
+/* A restored file is untrusted input — hand-edited, from another version, or crafted — so every
+   field is coerced to the shape the app expects instead of being taken on faith. Ids matter most:
+   they are written into DOM attributes and used to link bills and hibah to their target. */
+const SAFE_ID=/^[A-Za-z0-9_-]{1,40}$/;
+const RESERVED_KEY=/^(__proto__|constructor|prototype)$/;   // never let a restored file name these
+const isPlain=o=>!!o && typeof o==='object' && !Array.isArray(o);
+const safeKey=k=>typeof k==='string' && SAFE_ID.test(k) && !RESERVED_KEY.test(k);
+function cleanId(v){ return safeKey(v) ? v : uid(); }
+function cleanText(v){ return typeof v==='string' ? v.slice(0,200) : ''; }
+function cleanMoney(v){ const n=Number(v); return (isFinite(n) && n>0) ? Math.round(n) : 0; }
+function cleanExtra(o){
+  if(!isPlain(o)) return undefined;
+  const out={};
+  Object.keys(o).slice(0,20).forEach(k=>{
+    if(!safeKey(k)) return;
+    const v=o[k]; if(v===undefined||v===null||v==='') return;
+    out[k] = k==='monthly' ? cleanMoney(v) : cleanText(String(v));
+  });
+  return Object.keys(out).length?out:undefined;
+}
+function cleanAsset(a){
+  if(!isPlain(a)) return null;
+  const isLoan=!!a.isLoan;
+  const out={ id:cleanId(a.id), type:ASSET_NAME[a.type]?a.type:'others', label:cleanText(a.label)||'Aset',
+              amount:cleanMoney(a.amount), isLoan, isInsured:!!a.isInsured,
+              loanAmount:isLoan?cleanMoney(a.loanAmount):0 };
+  const extra=cleanExtra(a.extra); if(extra) out.extra=extra;
+  return out;
+}
+function cleanLoan(l){
+  if(!isPlain(l)) return null;
+  const out={ id:cleanId(l.id), label:cleanText(l.label)||'Hutang', amount:cleanMoney(l.amount), isInsured:!!l.isInsured };
+  const extra=cleanExtra(l.extra); if(extra) out.extra=extra;
+  return out;
+}
+function cleanBill(b){
+  if(!isPlain(b)) return null;
+  return { id:cleanId(b.id), label:cleanText(b.label)||'Bil', amount:cleanMoney(b.amount), category:cleanText(b.category)||'Bil' };
+}
+function cleanSel(o){
+  const out={};
+  if(!isPlain(o)) return out;
+  HEIRS.forEach(h=>{ const n=Math.floor(Number(o[h.id])); if(isFinite(n) && n>0) out[h.id]=Math.min(n, maxFor(h)); });
+  if(out.s) delete out.is;                                   // one spouse only, as the picker enforces
+  return out;
+}
+function cleanBillLog(o){
+  const out={};
+  if(!isPlain(o)) return out;
+  Object.keys(o).forEach(m=>{
+    if(!/^\d{4}-\d{2}$/.test(m) || !isPlain(o[m])) return;
+    const month={};
+    Object.keys(o[m]).forEach(k=>{ if(/^(asset|loan|m):[A-Za-z0-9_-]{1,40}$/.test(k)) month[k]=cleanMoney(o[m][k]); });
+    out[m]=month;
+  });
+  return out;
+}
+function cleanHibah(o, assetIds){
+  const out={};
+  if(!isPlain(o)) return out;
+  // keep only assets that still exist, assigned to a real heir or the explicit non-heir option
+  Object.keys(o).forEach(k=>{ if(assetIds.has(k) && (o[k]==='other' || HEIR_LABEL[o[k]])) out[k]=o[k]; });
+  return out;
+}
 function normalizeState(o){
+  const assets=(Array.isArray(o.assets)?o.assets:[]).map(cleanAsset).filter(Boolean).slice(0,500);
   return {
-    sel:     (o.sel && typeof o.sel==='object' && !Array.isArray(o.sel)) ? o.sel : {},
-    assets:  Array.isArray(o.assets) ? o.assets : [],
-    loans:   Array.isArray(o.loans)  ? o.loans  : [],
-    bills:   Array.isArray(o.bills)  ? o.bills  : [],
-    billLog: (o.billLog && typeof o.billLog==='object' && !Array.isArray(o.billLog)) ? o.billLog : {},
-    hibah:   (o.hibah && typeof o.hibah==='object' && !Array.isArray(o.hibah)) ? o.hibah : {},
+    sel:     cleanSel(o.sel),
+    assets,
+    loans:   (Array.isArray(o.loans)?o.loans:[]).map(cleanLoan).filter(Boolean).slice(0,500),
+    bills:   (Array.isArray(o.bills)?o.bills:[]).map(cleanBill).filter(Boolean).slice(0,500),
+    billLog: cleanBillLog(o.billLog),
+    hibah:   cleanHibah(o.hibah, new Set(assets.map(a=>a.id))),
   };
 }
 function exportBackup(){
@@ -1495,7 +1625,8 @@ function renderResult(res){
   });
   // blocked (mahjub) heirs — show who inherits nothing and why (high-trust transparency)
   if(blocked && res.blockedRows && res.blockedRows.length){
-    const t=document.createElement('div'); t.className='blocked-title'; t.textContent='Tidak menerima (terhalang)';
+    // heading stays neutral: this list holds mahjub heirs AND residuaries left with no residue
+    const t=document.createElement('div'); t.className='blocked-title'; t.textContent='Tidak menerima bahagian';
     blocked.appendChild(t);
     res.blockedRows.forEach(b=>{
       const d=document.createElement('div'); d.className='brow';
@@ -1936,7 +2067,7 @@ function buildPrintReport(){
     });
     html+=`</tbody></table><p class="pr-base">Asal Masalah (asas): ${res.base}</p>`;
     if(res.blockedRows && res.blockedRows.length){
-      html+=`<div class="pr-blocked"><strong>Tidak menerima (terhalang):</strong><ul>`;
+      html+=`<div class="pr-blocked"><strong>Tidak menerima bahagian:</strong><ul>`;
       res.blockedRows.forEach(b=>{ html+=`<li>${escapeHtml(b.label)}${b.count>1?` ×${b.count}`:''} — ${escapeHtml(b.reason)}</li>`; });
       html+=`</ul></div>`;
     }
@@ -2452,13 +2583,13 @@ function renderPerancangan(){
       const m=hibahMethod(a.type); const cur=hib[a.id]||'';
       const opts = m.can
         ? `<option value=""${cur===''?' selected':''}>— Kekal dalam faraid</option>`
-          + optIds.map(id=>`<option value="${id}"${cur===id?' selected':''}>${escapeHtml(HEIR_LABEL[id]||id)}</option>`).join('')
+          + optIds.map(id=>`<option value="${escapeHtml(id)}"${cur===id?' selected':''}>${escapeHtml(HEIR_LABEL[id]||id)}</option>`).join('')
           + `<option value="other"${cur==='other'?' selected':''}>Orang lain (bukan waris)</option>`
         : `<option value="">Tidak boleh dihibah</option>`;
       return `<div class="sc-asset">
         <div class="sc-asset-head"><span class="sc-asset-nm">${escapeHtml(a.label||ASSET_NAME[a.type]||'Aset')}</span><span class="sc-amt">${RM0.format(Number(a.amount)||0)}</span></div>
         <div class="sc-method"><span class="sc-via ${hibahViaClass(m.via)}">${escapeHtml(m.via)}</span><span>${escapeHtml(m.note)}</span></div>
-        <div class="sc-recip"><label>Hibah kepada</label><select class="sortsel" data-id="${a.id}"${m.can?'':' disabled'}>${opts}</select></div>
+        <div class="sc-recip"><label>Hibah kepada</label><select class="sortsel" data-id="${escapeHtml(a.id)}"${m.can?'':' disabled'}>${opts}</select></div>
       </div>`;
     }).join('');
     assetsHost.querySelectorAll('.sc-recip select').forEach(sel=>sel.onchange=()=>{

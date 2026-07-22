@@ -37,7 +37,10 @@ Calculations follow **Shāfiʿī / Malaysian practice** (including *radd*). The 
   they inherit nothing (e.g. *"Terhalang oleh Anak Lelaki"*). This makes the result auditable —
   important in a religious + financial domain.
 - Case notes explain estate-wide mechanisms when they apply: *ʿAul*, *Radd*, *Umariyyatān*,
-  *Musytarakah*, grandfather *muqāsamah*, and *asabah maʿa-l-ghayr*.
+  *Musytarakah*, grandfather *muqāsamah*, *Akdariyyah*, and *asabah maʿa-l-ghayr*.
+- A **"Tidak menerima bahagian"** section separates the two ways an heir can end up with nothing:
+  genuinely blocked (*mahjub*) by a nearer heir, versus a residuary (*ʿasabah*) left with no
+  residue after the fixed shares — the engine never calls the second one "blocked".
 - **Confidence badge.** Each result shows a visible reliability level so caveats aren't buried in
   a disclaimer: **standard** (common case, fully supported), **complex** (supported but intricate —
   e.g. grandfather with siblings, *asabah maʿa-l-ghayr*, *Musytarakah* — "verify with an expert"),
@@ -141,10 +144,16 @@ All in the dashboard's *Data & Sandaran* panel; everything is **local-first** an
 
 The engine implements: the fixed shares (*furūd*), residuary distribution (*ʿasabah*, 2:1),
 *ʿaul*, *radd*, blocking (*hijab*), *Umariyyatān*, *asabah maʿa-l-ghayr* (sister with daughters),
-*Musytarakah*, and grandfather *muqāsamah* with siblings (Shāfiʿī, not Ḥanafī blocking).
+*Musytarakah*, *Akdariyyah*, and grandfather *muqāsamah* with siblings (Shāfiʿī, not Ḥanafī blocking).
 
-**Intentionally not handled** (rare cases — the UI tells users to consult an expert): *Akdariyyah*,
-*muʿāddah* (mixed full/consanguine siblings with a grandfather), and *dhawu-l-arham*.
+With a grandfather, surviving brothers **and sisters** are his *muqāsamah* partners (*asabah
+maʿa-l-jadd*) rather than fixed-share heirs; he takes the best of *muqāsamah*, 1/3 of the
+remainder, or 1/6 of the estate. *Akdariyyah* (husband + mother + grandfather + one sister) is the
+exception: she takes her 1/2 *fard*, the case *ʿauls*, then her share and the grandfather's are
+pooled and redivided 2:1.
+
+**Intentionally not handled** (rare cases — the UI tells users to consult an expert):
+*muʿāddah* (mixed full/consanguine siblings with a grandfather) and *dhawu-l-arham*.
 
 This is a tool for **estimation and education — not final financial or sharia advice**. For an
 official distribution, consult the Syariah Court / Amanah Raya / a certified faraid expert.
@@ -162,7 +171,7 @@ cd public && python3 -m http.server 8000   # http://localhost:8000
 ## Tests
 
 A dependency-free test suite checks the faraid engine, the per-heir "Sebab" reasons, the asset
-net-total math, and the recommendation rule engine:
+net-total math, the backup sanitiser, and the recommendation rule engine:
 
 ```bash
 node test.mjs
@@ -170,3 +179,11 @@ node test.mjs
 
 Each faraid case asserts the exact fraction per heir *and* that all shares sum to exactly 1
 (or sum + Baitulmal = 1).
+
+On top of the hand-derived cases, an **invariant sweep** runs every combination of up to three
+heirs plus 30,000 seeded-random families (~32k cases) and asserts that each result divides the
+estate *exactly*, that no heir is listed as inheriting a zero share, and that every row carries a
+"Sebab". Hand-written cases only cover what someone thought to write down; this is what catches a
+share being assigned twice or silently overwritten. The engine also carries the same check at
+runtime as a last resort: a split that does not total the whole estate is forced to the **review**
+confidence level rather than being shown as trustworthy.
